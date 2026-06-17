@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2026-06-17
+
+### Added
+- Unit tests with Vitest (29 tests)
+- Tests for all token rules (colors, spacing, typography, radius, shadows)
+- Tests for component rules (variant-split)
+- Tests for config loader
+
+### Fixed
+- Fix stateful regex bug in shadows rule
+
 ## [0.7.2] - 2026-06-17
 
 ### Fixed

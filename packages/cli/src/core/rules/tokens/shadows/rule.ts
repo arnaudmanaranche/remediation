@@ -28,7 +28,7 @@ export const shadowsRule: Rule = {
         while ((match = regex.exec(line)) !== null) {
           const shadowValue = match[1];
 
-          if (HARDCODED_SHADOW_REGEX.test(shadowValue)) {
+          if (/\d+px/.test(shadowValue)) {
             violations.push({
               rule: 'shadows/hardcoded',
               file: file.path,

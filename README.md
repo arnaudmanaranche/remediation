@@ -1,5 +1,8 @@
 # remediation
 
+[![version](https://img.shields.io/npm/v/remediation?style=flat&colorA=000000&colorB=000000)](https://npmjs.com/package/remediation)
+[![downloads](https://img.shields.io/npm/dt/remediation.svg?style=flat&colorA=000000&colorB=000000)](https://npmjs.com/package/remediation)
+
 CLI tool that scans React source code and detects design system inconsistencies, offering suggestions and automated fixes.
 
 ## Installation
