@@ -11,3 +11,5 @@ coverage/
 .jscpd-cache/
 .jscpd-report.json
 jscpd-report.json
+.agents/
+skills-lock.json
