@@ -2,6 +2,8 @@ import { Command } from 'commander';
 import { scanDirectory, scanProject, allRules, getTransformsMap, componentRules, applyTransforms } from '../core/index';
 import { ScanProgress } from '../core/scanner';
 import pc from 'picocolors';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const program = new Command();
 
@@ -38,11 +40,35 @@ function printScanComplete(fileCount: number, startTime: number) {
   console.log(pc.cyan(`⚡ Scanned ${pc.bold(fileCount.toString())} files in ${pc.bold(elapsed)}s`));
 }
 
+function handleOutput(result: any, options: { format?: string; verbose?: boolean; output?: string }) {
+  if (options.format === 'json') {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (options.output) {
+    const report = generateReport(result);
+    const outputPath = path.resolve(options.output);
+    fs.writeFileSync(outputPath, report, 'utf-8');
+    console.log(pc.cyan(`📄 Report written to ${pc.bold(outputPath)}`));
+    printSummaryCompact(result);
+    return;
+  }
+
+  if (options.verbose) {
+    printTerminalVerbose(result);
+  } else {
+    printTerminalCompact(result);
+  }
+}
+
 program
   .command('scan')
   .description('Run all rules (tokens + components)')
   .option('--dry-run', 'Preview mode, do not apply fixes', false)
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
+  .option('--verbose', 'Show all violations in terminal', false)
+  .option('--output <file>', 'Write report to file')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
     const progress = options.format === 'terminal' ? createProgress() : undefined;
@@ -54,11 +80,7 @@ program
       printScanComplete(result.files.length, startTime);
     }
 
-    if (options.format === 'json') {
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      printTerminal(result);
-    }
+    handleOutput(result, options);
 
     if (!options.dryRun && result.summary.total > 0) {
       console.log('\nApplying fixes...');
@@ -81,6 +103,8 @@ program
   .description('Check for token inconsistencies')
   .option('--dry-run', 'Preview mode, do not apply fixes', false)
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
+  .option('--verbose', 'Show all violations in terminal', false)
+  .option('--output <file>', 'Write report to file')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
     const tokenRules = allRules.filter(r => 
@@ -100,11 +124,7 @@ program
       printScanComplete(result.files.length, startTime);
     }
 
-    if (options.format === 'json') {
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      printTerminal(result);
-    }
+    handleOutput(result, options);
 
     if (!options.dryRun && result.summary.total > 0) {
       console.log('\nApplying fixes...');
@@ -127,6 +147,8 @@ program
   .description('Check for component issues (duplicates, dead components)')
   .option('--dry-run', 'Preview mode, do not apply fixes', false)
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
+  .option('--verbose', 'Show all violations in terminal', false)
+  .option('--output <file>', 'Write report to file')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
     const progress = options.format === 'terminal' ? createProgress() : undefined;
@@ -138,11 +160,7 @@ program
       printScanComplete(result.files.length, startTime);
     }
 
-    if (options.format === 'json') {
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      printTerminal(result);
-    }
+    handleOutput(result, options);
 
     if (!options.dryRun && result.summary.total > 0) {
       console.log('\nApplying fixes...');
@@ -178,7 +196,7 @@ function getSeverityColor(severity: string): (text: string) => string {
   }
 }
 
-function printTerminal(result: any) {
+function printTerminalVerbose(result: any) {
   if (result.files.length === 0) {
     console.log(pc.green('✓ No violations found'));
     return;
@@ -200,6 +218,50 @@ function printTerminal(result: any) {
 
   printSummary(result);
   printRiskScore(result.riskScore);
+}
+
+function printTerminalCompact(result: any) {
+  if (result.files.length === 0) {
+    console.log(pc.green('✓ No violations found'));
+    return;
+  }
+
+  console.log(pc.bold('\nViolations by file:'));
+  for (const file of result.files) {
+    const errors = file.violations.filter((v: any) => v.severity === 'error').length;
+    const warnings = file.violations.filter((v: any) => v.severity === 'warning').length;
+    const infos = file.violations.filter((v: any) => v.severity === 'info').length;
+
+    let badge = '';
+    if (errors > 0) badge += pc.red(`${errors}E `);
+    if (warnings > 0) badge += pc.yellow(`${warnings}W `);
+    if (infos > 0) badge += pc.blue(`${infos}I`);
+
+    console.log(`  ${pc.dim(file.path)} ${badge.trim()}`);
+  }
+
+  printSummary(result);
+  printRiskScore(result.riskScore);
+}
+
+function printSummaryCompact(result: any) {
+  const { errors, warnings, infos, total } = result.summary;
+  console.log(pc.bold('\n┌─ Summary ─────────────────────────────┐'));
+
+  if (errors > 0) {
+    console.log(`│  ${pc.red('✖')} ${pc.red(errors.toString().padStart(3))} errors    ${getProgressBar(errors, total, 'red')}`);
+  }
+  if (warnings > 0) {
+    console.log(`│  ${pc.yellow('⚠')} ${pc.yellow(warnings.toString().padStart(3))} warnings  ${getProgressBar(warnings, total, 'yellow')}`);
+  }
+  if (infos > 0) {
+    console.log(`│  ${pc.blue('ℹ')} ${pc.blue(infos.toString().padStart(3))} infos     ${getProgressBar(infos, total, 'blue')}`);
+  }
+
+  console.log(`│  ${pc.dim('─'.repeat(36))}`);
+  console.log(`│  ${pc.bold(total.toString().padStart(3))} total violations`);
+  console.log(`│  ${pc.dim(result.files.length.toString().padStart(3))} files affected`);
+  console.log(pc.bold('└────────────────────────────────────────┘'));
 }
 
 function printSummary(result: any) {
@@ -255,6 +317,64 @@ function getRiskLabel(score: number): string {
   if (score < 70) return 'Medium risk';
   if (score < 90) return 'High risk';
   return 'Critical risk';
+}
+
+function generateReport(result: any): string {
+  const lines: string[] = [];
+
+  lines.push('╔══════════════════════════════════════════════════════════════╗');
+  lines.push('║                    REMEDIATION REPORT                       ║');
+  lines.push('╚══════════════════════════════════════════════════════════════╝');
+  lines.push('');
+
+  if (result.files.length === 0) {
+    lines.push('✓ No violations found');
+    return lines.join('\n');
+  }
+
+  for (const file of result.files) {
+    lines.push(`📁 ${file.path}`);
+    lines.push('─'.repeat(60));
+
+    for (const violation of file.violations) {
+      const icon = violation.severity === 'error' ? '✖' : violation.severity === 'warning' ? '⚠' : 'ℹ';
+      lines.push(`  ${icon} ${violation.severity.toUpperCase().padEnd(7)} L${violation.line}:${violation.column} ${violation.message}`);
+      if (violation.suggestion) {
+        lines.push(`         → ${violation.suggestion}`);
+      }
+    }
+
+    lines.push('');
+  }
+
+  lines.push('═'.repeat(60));
+  lines.push('SUMMARY');
+  lines.push('═'.repeat(60));
+  lines.push('');
+
+  const { errors, warnings, infos, total } = result.summary;
+
+  if (errors > 0) lines.push(`  ✖ ${errors} error${errors > 1 ? 's' : ''}`);
+  if (warnings > 0) lines.push(`  ⚠ ${warnings} warning${warnings > 1 ? 's' : ''}`);
+  if (infos > 0) lines.push(`  ℹ ${infos} info${infos > 1 ? 's' : ''}`);
+  lines.push(`  ─────────────────`);
+  lines.push(`  ${total} total violations`);
+  lines.push(`  ${result.files.length} files affected`);
+  lines.push('');
+
+  lines.push('RISK SCORE');
+  lines.push('─'.repeat(60));
+
+  const score = result.riskScore;
+  const percentage = Math.min(score, 100);
+  const width = 40;
+  const filled = Math.round((percentage / 100) * width);
+  const empty = width - filled;
+
+  lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${percentage}/100`);
+  lines.push(`  ${getRiskLabel(percentage)}`);
+
+  return lines.join('\n');
 }
 
 program.parse();
