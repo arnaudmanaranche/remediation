@@ -1,6 +1,6 @@
 {
   "name": "remediation",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "CLI tool that scans React source code and detects design system inconsistencies",
   "license": "MIT",
   "bin": {
@@ -12,7 +12,10 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "changeset:patch": "npm version patch --no-git-tag-version && npm run build && npm publish",
+    "changeset:minor": "npm version minor --no-git-tag-version && npm run build && npm publish",
+    "changeset:major": "npm version major --no-git-tag-version && npm run build && npm publish"
   },
   "dependencies": {
     "commander": "^12.0.0",

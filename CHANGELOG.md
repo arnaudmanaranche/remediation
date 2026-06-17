@@ -1,0 +1,38 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] - 2026-06-17
+
+### Added
+- `components/variant-split` rule: detects components with conditional rendering based on variant props (variant, size, type, kind) that should be split into separate components
+- Ternary detection (single-line and multi-line)
+- Switch statement detection
+
+## [0.1.2] - 2026-06-17
+
+### Fixed
+- Remove dead packages/core directory
+- Add root tsconfig.json
+- Update .gitignore with comprehensive ignore rules
+
+## [0.1.1] - 2026-06-17
+
+### Fixed
+- npm publish configuration
+
+## [0.1.0] - 2026-06-17
+
+### Added
+- Initial release
+- Token rules: `colors/hardcoded`, `spacing/hardcoded`, `typography/hardcoded`
+- Token transforms: auto-replace hardcoded values with token references
+- Component rules: `components/dead` (knip), `components/duplicates` (jscpd)
+- CLI commands: `scan`, `tokens`, `components`
+- `--dry-run` flag for preview mode
+- `--format json` for CI/CD output
+- Risk scoring per file
+- Git checkpoint before auto-fix
