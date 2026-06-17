@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { runPipeline, generateTokensFile } from '../core/pipeline';
+import { applyCodemod, generateCodemodPreview } from '../core/pipeline/codemod';
 import pc from 'picocolors';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -10,8 +11,10 @@ export function registerAnalyzeCommand(program: Command) {
     .description('Analyze design system usage and propose tokens')
     .option('--output <file>', 'Generate tokens.ts file')
     .option('--min-confidence <level>', 'Minimum confidence (high, medium, low)', 'low')
+    .option('--codemod', 'Apply codemod to replace hardcoded values with tokens', false)
+    .option('--dry-run', 'Preview codemod changes without applying', true)
     .argument('[path]', 'Path to scan', '.')
-    .action((scanPath: string, options: { output?: string; minConfidence?: string }) => {
+    .action((scanPath: string, options: { output?: string; minConfidence?: string; codemod?: boolean; dryRun?: boolean }) => {
       console.log(pc.cyan('⚡ Analyzing design system...'));
 
       const startTime = Date.now();
@@ -31,6 +34,30 @@ export function registerAnalyzeCommand(program: Command) {
         const outputPath = path.resolve(options.output);
         fs.writeFileSync(outputPath, tokensContent, 'utf-8');
         console.log(pc.cyan(`📄 Tokens written to ${pc.bold(outputPath)}`));
+      }
+
+      if (options.codemod) {
+        const filteredProposals = result.decision.proposals.filter(p => {
+          const order = { high: 0, medium: 1, low: 2 };
+          return order[p.confidence] <= order[options.minConfidence as keyof typeof order];
+        });
+
+        const codemodResult = applyCodemod(scanPath, filteredProposals, options.dryRun);
+
+        if (codemodResult.changes.length === 0) {
+          console.log(pc.yellow('No changes to apply'));
+          return;
+        }
+
+        const preview = generateCodemodPreview(codemodResult.changes);
+        console.log(preview);
+
+        if (options.dryRun) {
+          console.log(pc.dim('\nDRY RUN — no changes applied'));
+          console.log(pc.dim('Run with --codemod --no-dry-run to apply changes'));
+        } else {
+          console.log(pc.green(`\n✓ Applied ${codemodResult.changes.length} changes to ${codemodResult.filesModified.length} files`));
+        }
       }
     });
 }
