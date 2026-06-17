@@ -1,0 +1,32 @@
+{
+  "name": "remediation",
+  "version": "0.1.2",
+  "description": "CLI tool that scans React source code and detects design system inconsistencies",
+  "license": "MIT",
+  "bin": {
+    "remediation": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "knip": "^5.0.0",
+    "jscpd": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "react",
+    "design-system",
+    "tokens",
+    "lint",
+    "code-quality"
+  ]
+}

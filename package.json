@@ -1,0 +1,11 @@
+{
+  "name": "remediation-monorepo",
+  "version": "0.1.2",
+  "description": "CLI tool that scans React source code and detects design system inconsistencies",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "cd packages/cli && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

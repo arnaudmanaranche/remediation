@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.log
+*.tgz
+.DS_Store
+.env
+.env.*
+coverage/
+.idea/
+.vscode/
+.jscpd-cache/
+.jscpd-report.json
+jscpd-report.json
