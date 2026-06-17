@@ -45,9 +45,11 @@ remediation components [path]
 
 | Rule | Description |
 |------|-------------|
-| `tokens/colors/hardcoded` | Detects hardcoded color values (hex, rgb, hsl) |
-| `tokens/spacing/hardcoded` | Detects hardcoded spacing values (px, rem, em) |
-| `tokens/typography/hardcoded` | Detects hardcoded font sizes and weights |
+| `colors/hardcoded` | Detects hardcoded color values (hex, rgb, hsl) |
+| `spacing/hardcoded` | Detects hardcoded spacing values (px, rem, em) |
+| `typography/hardcoded` | Detects hardcoded font sizes and weights |
+| `radius/hardcoded` | Detects hardcoded border-radius values (px, rem, em) |
+| `shadows/hardcoded` | Detects hardcoded box-shadow values |
 
 ### Component Rules
 

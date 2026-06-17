@@ -47,7 +47,13 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
-    const tokenRules = allRules.filter(r => r.name.startsWith('tokens/'));
+    const tokenRules = allRules.filter(r => 
+      r.name.includes('colors/') || 
+      r.name.includes('spacing/') || 
+      r.name.includes('typography/') ||
+      r.name.includes('radius/') ||
+      r.name.includes('shadows/')
+    );
     const result = scanDirectory(path, tokenRules);
 
     if (options.format === 'json') {
