@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { scanDirectory, scanProject, allRules, getTransformsMap, componentRules, applyTransforms } from '../core/index';
+import { scanDirectory, scanProject, allRules } from '../core/index';
 import { ScanProgress } from '../core/scanner';
 import pc from 'picocolors';
 import * as fs from 'fs';
@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('remediation')
   .description('CLI tool that scans React source code and detects design system inconsistencies')
-  .version('0.0.1');
+  .version('0.10.0');
 
 function createProgress(): ScanProgress {
   let startTime = Date.now();
@@ -102,7 +102,7 @@ function handleOutput(result: any, options: { format?: string; verbose?: boolean
 
 program
   .command('scan')
-  .description('Run all rules (tokens + components)')
+  .description('Scan codebase for design system violations')
   .option('--dry-run', 'Preview mode, do not apply fixes', false)
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
@@ -148,32 +148,6 @@ program
     const startTime = Date.now();
 
     const result = scanDirectory(scanPath, tokenRules, undefined, progress);
-
-    if (options.format === 'terminal') {
-      printScanComplete(result.files.length, startTime);
-    }
-
-    handleOutput(result, options, scanPath);
-
-    if (options.dryRun && result.summary.total > 0) {
-      console.log(pc.dim('\nDRY RUN — no changes applied'));
-    }
-  });
-
-program
-  .command('components')
-  .description('Check for component issues (duplicates, dead components)')
-  .option('--dry-run', 'Preview mode, do not apply fixes', false)
-  .option('--format <format>', 'Output format (terminal, json)', 'terminal')
-  .option('--verbose', 'Show all violations in terminal', false)
-  .option('--output <file>', 'Write report to file')
-  .option('--rule <pattern>', 'Filter by rule name (e.g., dead, variant-split)')
-  .argument('[path]', 'Path to scan', '.')
-  .action(async (scanPath, options) => {
-    const progress = options.format === 'terminal' ? createProgress() : undefined;
-    const startTime = Date.now();
-
-    const result = await scanProject(scanPath, componentRules, undefined, progress);
 
     if (options.format === 'terminal') {
       printScanComplete(result.files.length, startTime);
