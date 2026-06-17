@@ -1,6 +1,6 @@
 {
   "name": "remediation",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "CLI tool that scans React source code and detects design system inconsistencies",
   "license": "MIT",
   "bin": {

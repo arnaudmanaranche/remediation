@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { scanDirectory, scanProject, allRules, getTransformsMap, componentRules, applyTransforms } from '../core/index';
+import { ScanProgress } from '../core/scanner';
 import pc from 'picocolors';
 
 const program = new Command();
@@ -9,6 +10,34 @@ program
   .description('CLI tool that scans React source code and detects design system inconsistencies')
   .version('0.0.1');
 
+function createProgress(): ScanProgress {
+  let startTime = Date.now();
+  let fileCount = 0;
+
+  return {
+    onFile: (file: string, current: number, total: number) => {
+      if (current === 1) {
+        startTime = Date.now();
+        process.stdout.write(pc.cyan('⚡ Scanning...'));
+      }
+      fileCount = current;
+
+      if (current % 50 === 0 || current === total) {
+        process.stdout.write(pc.dim(` ${current}/${total}`));
+      }
+    },
+    onProjectRule: (rule: string) => {
+      process.stdout.write(pc.dim(` [${rule}]`));
+    },
+  };
+}
+
+function printScanComplete(fileCount: number, startTime: number) {
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  process.stdout.write('\r' + ' '.repeat(80) + '\r');
+  console.log(pc.cyan(`⚡ Scanned ${pc.bold(fileCount.toString())} files in ${pc.bold(elapsed)}s`));
+}
+
 program
   .command('scan')
   .description('Run all rules (tokens + components)')
@@ -16,7 +45,14 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
-    const result = await scanProject(path, allRules);
+    const progress = options.format === 'terminal' ? createProgress() : undefined;
+    const startTime = Date.now();
+
+    const result = await scanProject(path, allRules, undefined, progress);
+
+    if (options.format === 'terminal') {
+      printScanComplete(result.files.length, startTime);
+    }
 
     if (options.format === 'json') {
       console.log(JSON.stringify(result, null, 2));
@@ -54,7 +90,15 @@ program
       r.name.includes('radius/') ||
       r.name.includes('shadows/')
     );
-    const result = scanDirectory(path, tokenRules);
+
+    const progress = options.format === 'terminal' ? createProgress() : undefined;
+    const startTime = Date.now();
+
+    const result = scanDirectory(path, tokenRules, undefined, progress);
+
+    if (options.format === 'terminal') {
+      printScanComplete(result.files.length, startTime);
+    }
 
     if (options.format === 'json') {
       console.log(JSON.stringify(result, null, 2));
@@ -85,7 +129,14 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .argument('[path]', 'Path to scan', '.')
   .action(async (path, options) => {
-    const result = await scanProject(path, componentRules);
+    const progress = options.format === 'terminal' ? createProgress() : undefined;
+    const startTime = Date.now();
+
+    const result = await scanProject(path, componentRules, undefined, progress);
+
+    if (options.format === 'terminal') {
+      printScanComplete(result.files.length, startTime);
+    }
 
     if (options.format === 'json') {
       console.log(JSON.stringify(result, null, 2));

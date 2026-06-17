@@ -3,10 +3,16 @@ import * as path from 'path';
 import { Rule, FileContent, Violation, ScanResult, FileViolation } from './types';
 import { loadConfig, shouldIgnoreFile, getRuleSeverity, RemediationConfig } from './config';
 
+export interface ScanProgress {
+  onFile?: (file: string, current: number, total: number) => void;
+  onProjectRule?: (rule: string) => void;
+}
+
 export async function scanProject(
   projectPath: string,
   rules: Rule[],
-  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx']
+  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx'],
+  progress?: ScanProgress
 ): Promise<ScanResult> {
   const configDir = fs.statSync(projectPath).isFile() ? path.dirname(projectPath) : projectPath;
   const config = loadConfig(configDir);
@@ -18,7 +24,10 @@ export async function scanProject(
 
   const files = fs.statSync(projectPath).isFile() ? [projectPath] : collectFiles(projectPath, extensions, config);
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    progress?.onFile?.(file, i + 1, files.length);
+
     const content = fs.readFileSync(file, 'utf-8');
     const fileContent: FileContent = { path: file, content };
     const violations = runRules(fileContent, fileRules, config);
@@ -33,6 +42,8 @@ export async function scanProject(
   }
 
   for (const rule of projectRules) {
+    progress?.onProjectRule?.(rule.name);
+
     if (rule.detectProject) {
       const violations = await rule.detectProject(projectPath);
       const filtered = filterViolationsByConfig(violations, config);
@@ -64,7 +75,8 @@ export async function scanProject(
 export function scanDirectory(
   dir: string,
   rules: Rule[],
-  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx']
+  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx'],
+  progress?: ScanProgress
 ): ScanResult {
   const configDir = fs.statSync(dir).isFile() ? path.dirname(dir) : dir;
   const config = loadConfig(configDir);
@@ -72,7 +84,10 @@ export function scanDirectory(
   const files = fs.statSync(dir).isFile() ? [dir] : collectFiles(dir, extensions, config);
   const fileViolations: FileViolation[] = [];
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    progress?.onFile?.(file, i + 1, files.length);
+
     const content = fs.readFileSync(file, 'utf-8');
     const fileContent: FileContent = { path: file, content };
     const violations = runRules(fileContent, activeRules, config);
