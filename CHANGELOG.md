@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-17
+
+### Added
+- Improved terminal output with picocolors
+- Progress bar for risk score visualization
+- Severity icons (✖, ⚠, ℹ)
+- Visual summary with breakdown by severity
+- Risk level labels (Low, Medium, High, Critical)
+
 ## [0.3.0] - 2026-06-17
 
 ### Added
