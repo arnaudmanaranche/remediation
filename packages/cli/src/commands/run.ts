@@ -14,7 +14,6 @@ program
 
 function createProgress(): ScanProgress {
   let startTime = Date.now();
-  let fileCount = 0;
 
   return {
     onFile: (file: string, current: number, total: number) => {
@@ -22,7 +21,6 @@ function createProgress(): ScanProgress {
         startTime = Date.now();
         process.stdout.write(pc.cyan('⚡ Scanning...'));
       }
-      fileCount = current;
 
       if (current % 50 === 0 || current === total) {
         process.stdout.write(pc.dim(` ${current}/${total}`));
@@ -40,25 +38,65 @@ function printScanComplete(fileCount: number, startTime: number) {
   console.log(pc.cyan(`⚡ Scanned ${pc.bold(fileCount.toString())} files in ${pc.bold(elapsed)}s`));
 }
 
-function handleOutput(result: any, options: { format?: string; verbose?: boolean; output?: string }) {
+function toRelativePath(filePath: string, basePath: string): string {
+  const normalizedBase = path.resolve(basePath);
+  const normalizedFile = path.resolve(filePath);
+
+  if (normalizedFile.startsWith(normalizedBase)) {
+    return path.relative(normalizedBase, normalizedFile);
+  }
+
+  return path.relative(process.cwd(), normalizedFile);
+}
+
+function filterByRule(result: any, ruleFilter?: string): any {
+  if (!ruleFilter) return result;
+
+  const filteredFiles = result.files
+    .map((file: any) => ({
+      ...file,
+      violations: file.violations.filter((v: any) =>
+        v.rule.includes(ruleFilter)
+      ),
+    }))
+    .filter((file: any) => file.violations.length > 0);
+
+  const total = filteredFiles.reduce((sum: number, f: any) => sum + f.violations.length, 0);
+  const errors = filteredFiles.reduce((sum: number, f: any) =>
+    sum + f.violations.filter((v: any) => v.severity === 'error').length, 0);
+  const warnings = filteredFiles.reduce((sum: number, f: any) =>
+    sum + f.violations.filter((v: any) => v.severity === 'warning').length, 0);
+  const infos = filteredFiles.reduce((sum: number, f: any) =>
+    sum + f.violations.filter((v: any) => v.severity === 'info').length, 0);
+
+  return {
+    ...result,
+    files: filteredFiles,
+    summary: { total, errors, warnings, infos },
+  };
+}
+
+function handleOutput(result: any, options: { format?: string; verbose?: boolean; output?: string; rule?: string }, basePath: string) {
+  const filtered = filterByRule(result, options.rule);
+
   if (options.format === 'json') {
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify(filtered, null, 2));
     return;
   }
 
   if (options.output) {
-    const report = generateReport(result);
+    const report = generateReport(filtered, basePath);
     const outputPath = path.resolve(options.output);
     fs.writeFileSync(outputPath, report, 'utf-8');
     console.log(pc.cyan(`📄 Report written to ${pc.bold(outputPath)}`));
-    printSummaryCompact(result);
+    printSummaryCompact(filtered);
     return;
   }
 
   if (options.verbose) {
-    printTerminalVerbose(result);
+    printTerminalVerbose(filtered, basePath);
   } else {
-    printTerminalCompact(result);
+    printTerminalCompact(filtered, basePath);
   }
 }
 
@@ -69,32 +107,22 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
   .option('--output <file>', 'Write report to file')
+  .option('--rule <pattern>', 'Filter by rule name (e.g., colors, spacing)')
   .argument('[path]', 'Path to scan', '.')
-  .action(async (path, options) => {
+  .action(async (scanPath, options) => {
     const progress = options.format === 'terminal' ? createProgress() : undefined;
     const startTime = Date.now();
 
-    const result = await scanProject(path, allRules, undefined, progress);
+    const result = await scanProject(scanPath, allRules, undefined, progress);
 
     if (options.format === 'terminal') {
       printScanComplete(result.files.length, startTime);
     }
 
-    handleOutput(result, options);
+    handleOutput(result, options, scanPath);
 
-    if (!options.dryRun && result.summary.total > 0) {
-      console.log('\nApplying fixes...');
-      const transforms = getTransformsMap();
-      const fixes = applyTransforms(
-        result.files.flatMap(f => f.violations),
-        transforms
-      );
-
-      if (fixes.length > 0) {
-        console.log(pc.green(`Fixed ${fixes.length} files`));
-      } else {
-        console.log(pc.yellow('No automatic fixes available'));
-      }
+    if (options.dryRun && result.summary.total > 0) {
+      console.log(pc.dim('\nDRY RUN — no changes applied'));
     }
   });
 
@@ -105,11 +133,12 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
   .option('--output <file>', 'Write report to file')
+  .option('--rule <pattern>', 'Filter by rule name (e.g., colors, spacing)')
   .argument('[path]', 'Path to scan', '.')
-  .action(async (path, options) => {
-    const tokenRules = allRules.filter(r => 
-      r.name.includes('colors/') || 
-      r.name.includes('spacing/') || 
+  .action(async (scanPath, options) => {
+    const tokenRules = allRules.filter(r =>
+      r.name.includes('colors/') ||
+      r.name.includes('spacing/') ||
       r.name.includes('typography/') ||
       r.name.includes('radius/') ||
       r.name.includes('shadows/')
@@ -118,27 +147,16 @@ program
     const progress = options.format === 'terminal' ? createProgress() : undefined;
     const startTime = Date.now();
 
-    const result = scanDirectory(path, tokenRules, undefined, progress);
+    const result = scanDirectory(scanPath, tokenRules, undefined, progress);
 
     if (options.format === 'terminal') {
       printScanComplete(result.files.length, startTime);
     }
 
-    handleOutput(result, options);
+    handleOutput(result, options, scanPath);
 
-    if (!options.dryRun && result.summary.total > 0) {
-      console.log('\nApplying fixes...');
-      const transforms = getTransformsMap();
-      const fixes = applyTransforms(
-        result.files.flatMap(f => f.violations),
-        transforms
-      );
-
-      if (fixes.length > 0) {
-        console.log(pc.green(`Fixed ${fixes.length} files`));
-      } else {
-        console.log(pc.yellow('No automatic fixes available'));
-      }
+    if (options.dryRun && result.summary.total > 0) {
+      console.log(pc.dim('\nDRY RUN — no changes applied'));
     }
   });
 
@@ -149,32 +167,22 @@ program
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
   .option('--output <file>', 'Write report to file')
+  .option('--rule <pattern>', 'Filter by rule name (e.g., dead, variant-split)')
   .argument('[path]', 'Path to scan', '.')
-  .action(async (path, options) => {
+  .action(async (scanPath, options) => {
     const progress = options.format === 'terminal' ? createProgress() : undefined;
     const startTime = Date.now();
 
-    const result = await scanProject(path, componentRules, undefined, progress);
+    const result = await scanProject(scanPath, componentRules, undefined, progress);
 
     if (options.format === 'terminal') {
       printScanComplete(result.files.length, startTime);
     }
 
-    handleOutput(result, options);
+    handleOutput(result, options, scanPath);
 
-    if (!options.dryRun && result.summary.total > 0) {
-      console.log('\nApplying fixes...');
-      const transforms = getTransformsMap();
-      const fixes = applyTransforms(
-        result.files.flatMap(f => f.violations),
-        transforms
-      );
-
-      if (fixes.length > 0) {
-        console.log(pc.green(`Fixed ${fixes.length} files`));
-      } else {
-        console.log(pc.yellow('No automatic fixes available'));
-      }
+    if (options.dryRun && result.summary.total > 0) {
+      console.log(pc.dim('\nDRY RUN — no changes applied'));
     }
   });
 
@@ -196,14 +204,15 @@ function getSeverityColor(severity: string): (text: string) => string {
   }
 }
 
-function printTerminalVerbose(result: any) {
+function printTerminalVerbose(result: any, basePath: string) {
   if (result.files.length === 0) {
     console.log(pc.green('✓ No violations found'));
     return;
   }
 
   for (const file of result.files) {
-    console.log(pc.bold(`\n${file.path}`));
+    const relativePath = toRelativePath(file.path, basePath);
+    console.log(pc.bold(`\n${relativePath}`));
     for (const violation of file.violations) {
       const icon = getSeverityIcon(violation.severity);
       const color = getSeverityColor(violation.severity);
@@ -220,7 +229,7 @@ function printTerminalVerbose(result: any) {
   printRiskScore(result.riskScore);
 }
 
-function printTerminalCompact(result: any) {
+function printTerminalCompact(result: any, basePath: string) {
   if (result.files.length === 0) {
     console.log(pc.green('✓ No violations found'));
     return;
@@ -228,6 +237,7 @@ function printTerminalCompact(result: any) {
 
   console.log(pc.bold('\nViolations by file:'));
   for (const file of result.files) {
+    const relativePath = toRelativePath(file.path, basePath);
     const errors = file.violations.filter((v: any) => v.severity === 'error').length;
     const warnings = file.violations.filter((v: any) => v.severity === 'warning').length;
     const infos = file.violations.filter((v: any) => v.severity === 'info').length;
@@ -237,7 +247,7 @@ function printTerminalCompact(result: any) {
     if (warnings > 0) badge += pc.yellow(`${warnings}W `);
     if (infos > 0) badge += pc.blue(`${infos}I`);
 
-    console.log(`  ${pc.dim(file.path)} ${badge.trim()}`);
+    console.log(`  ${pc.dim(relativePath)} ${badge.trim()}`);
   }
 
   printSummary(result);
@@ -294,21 +304,32 @@ function getProgressBar(value: number, total: number, color: 'red' | 'yellow' | 
   return colorFn('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
 }
 
+function calculateLogRiskScore(result: any): number {
+  const { errors, warnings, infos } = result.summary;
+
+  const errorScore = errors * 10;
+  const warningScore = warnings * 2;
+  const infoScore = infos * 0.5;
+
+  const raw = errorScore + warningScore + infoScore;
+  const log = Math.log(raw + 1) * 15;
+
+  return Math.min(Math.round(log), 100);
+}
+
 function printRiskScore(score: number) {
-  const maxScore = 100;
-  const percentage = Math.min(score, maxScore);
   const width = 30;
-  const filled = Math.round((percentage / maxScore) * width);
+  const filled = Math.round((score / 100) * width);
   const empty = width - filled;
 
   let color: 'green' | 'yellow' | 'red';
-  if (percentage < 30) color = 'green';
-  else if (percentage < 70) color = 'yellow';
+  if (score < 30) color = 'green';
+  else if (score < 70) color = 'yellow';
   else color = 'red';
 
   console.log(pc.bold('\n┌─ Risk Score ───────────────────────────┐'));
-  console.log(`│  ${pc[color]('█'.repeat(filled))}${pc.dim('░'.repeat(empty))}  ${pc.bold(percentage.toString())}/${maxScore}`);
-  console.log(`│  ${pc.dim(getRiskLabel(percentage))}`);
+  console.log(`│  ${pc[color]('█'.repeat(filled))}${pc.dim('░'.repeat(empty))}  ${pc.bold(score.toString())}/100`);
+  console.log(`│  ${pc.dim(getRiskLabel(score))}`);
   console.log(pc.bold('└────────────────────────────────────────┘'));
 }
 
@@ -319,7 +340,7 @@ function getRiskLabel(score: number): string {
   return 'Critical risk';
 }
 
-function generateReport(result: any): string {
+function generateReport(result: any, basePath: string): string {
   const lines: string[] = [];
 
   lines.push('╔══════════════════════════════════════════════════════════════╗');
@@ -333,7 +354,8 @@ function generateReport(result: any): string {
   }
 
   for (const file of result.files) {
-    lines.push(`📁 ${file.path}`);
+    const relativePath = toRelativePath(file.path, basePath);
+    lines.push(`📁 ${relativePath}`);
     lines.push('─'.repeat(60));
 
     for (const violation of file.violations) {
@@ -365,14 +387,13 @@ function generateReport(result: any): string {
   lines.push('RISK SCORE');
   lines.push('─'.repeat(60));
 
-  const score = result.riskScore;
-  const percentage = Math.min(score, 100);
+  const score = calculateLogRiskScore(result);
   const width = 40;
-  const filled = Math.round((percentage / 100) * width);
+  const filled = Math.round((score / 100) * width);
   const empty = width - filled;
 
-  lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${percentage}/100`);
-  lines.push(`  ${getRiskLabel(percentage)}`);
+  lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${score}/100`);
+  lines.push(`  ${getRiskLabel(score)}`);
 
   return lines.join('\n');
 }

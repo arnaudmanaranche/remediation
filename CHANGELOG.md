@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-06-17
+
+### Fixed
+- Use relative paths in output instead of absolute paths
+- Default to dry-run mode (no auto-fix without explicit flag)
+- Logarithmic risk score to prevent 100/100 saturation
+
+### Added
+- `--rule <pattern>` flag to filter violations by rule name
+- Expanded color token suggestions (Tailwind-like colors)
+
 ## [0.7.1] - 2026-06-17
 
 ### Added

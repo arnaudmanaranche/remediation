@@ -152,13 +152,14 @@ function runRules(file: FileContent, rules: Rule[], config: RemediationConfig = 
 }
 
 function calculateFileRiskScore(violations: Violation[]): number {
-  const weights: Record<string, number> = {
-    error: 3,
-    warning: 2,
-    info: 1,
-  };
+  const errors = violations.filter(v => v.severity === 'error').length;
+  const warnings = violations.filter(v => v.severity === 'warning').length;
+  const infos = violations.filter(v => v.severity === 'info').length;
 
-  return violations.reduce((score, v) => score + (weights[v.severity] || 1), 0);
+  const raw = (errors * 10) + (warnings * 2) + (infos * 0.5);
+  const log = Math.log(raw + 1) * 15;
+
+  return Math.min(Math.round(log), 100);
 }
 
 function calculateSummary(fileViolations: FileViolation[]): {
@@ -196,7 +197,17 @@ function calculateSummary(fileViolations: FileViolation[]): {
 }
 
 function calculateOverallRiskScore(fileViolations: FileViolation[]): number {
-  return fileViolations.reduce((score, file) => score + file.riskScore, 0);
+  const totalErrors = fileViolations.reduce((sum, f) =>
+    sum + f.violations.filter(v => v.severity === 'error').length, 0);
+  const totalWarnings = fileViolations.reduce((sum, f) =>
+    sum + f.violations.filter(v => v.severity === 'warning').length, 0);
+  const totalInfos = fileViolations.reduce((sum, f) =>
+    sum + f.violations.filter(v => v.severity === 'info').length, 0);
+
+  const raw = (totalErrors * 10) + (totalWarnings * 2) + (totalInfos * 0.5);
+  const log = Math.log(raw + 1) * 15;
+
+  return Math.min(Math.round(log), 100);
 }
 
 function groupViolationsByFile(violations: Violation[]): Map<string, Violation[]> {
