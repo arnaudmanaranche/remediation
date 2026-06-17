@@ -31,16 +31,15 @@ remediation scan [path]
 remediation tokens [path]
 ```
 
-### Scan components only
-
-```bash
-remediation components [path]
-```
-
 ### Options
 
-- `--dry-run` — Preview mode, shows violations without applying fixes
-- `--format json` — Output results as JSON (useful for CI/CD)
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Preview mode, no changes applied |
+| `--verbose` | Show all violations in terminal |
+| `--output <file>` | Write report to file |
+| `--rule <pattern>` | Filter by rule name (e.g., `colors`, `drift`) |
+| `--format json` | Output results as JSON (for CI/CD) |
 
 ## Rules
 
@@ -51,57 +50,40 @@ remediation components [path]
 | `colors/hardcoded` | Detects hardcoded color values (hex, rgb, hsl) |
 | `spacing/hardcoded` | Detects hardcoded spacing values (px, rem, em) |
 | `typography/hardcoded` | Detects hardcoded font sizes and weights |
-| `radius/hardcoded` | Detects hardcoded border-radius values (px, rem, em) |
+| `radius/hardcoded` | Detects hardcoded border-radius values |
 | `shadows/hardcoded` | Detects hardcoded box-shadow values |
 
-### Component Rules
+### Analysis Rules
 
 | Rule | Description |
 |------|-------------|
-| `components/dead` | Detects unused React components using knip |
-| `components/duplicates` | Detects duplicate code patterns using jscpd |
-| `components/variant-split` | Detects components with conditional rendering based on variant props |
+| `token-bypass` | Detects hardcoded values when a token already exists |
+| `drift` | Detects duplicate components that should be merged |
 
 ## Example Output
 
 ```
-src/Button.tsx
-  WARNING L4:10 Conditional rendering based on variant — consider splitting into separate components
-         Split into separate components based on variant values
+⚡ Scanning... 26/26 [token-bypass] [drift]
+⚡ Scanned 26 files in 1.2s
 
-1 violations (0 errors, 1 warnings, 0 infos)
-Risk score: 2
-```
+Violations by file:
+  src/components/Button.tsx 3W
+  src/components/ButtonPrimary.tsx 2W
+  src/components/CTAButton.tsx 2W
 
-## JSON Output
+┌─ Summary ─────────────────────────────┐
+│  ⚠   7 warnings  ███████████████
+│  ────────────────────────────────────
+│    7 total violations
+└────────────────────────────────────────┘
 
-```json
-{
-  "files": [
-    {
-      "path": "src/Button.tsx",
-      "violations": [
-        {
-          "rule": "components/variant-split",
-          "file": "src/Button.tsx",
-          "line": 4,
-          "column": 10,
-          "message": "Conditional rendering based on variant — consider splitting into separate components",
-          "severity": "warning",
-          "suggestion": "Split into separate components based on variant values"
-        }
-      ],
-      "riskScore": 2
-    }
-  ],
-  "summary": {
-    "total": 1,
-    "errors": 0,
-    "warnings": 1,
-    "infos": 0
-  },
-  "riskScore": 2
-}
+┌─ UI Health Score ──────────────────────┐
+│  ████████████████████████░░░░░░  82/100
+│  High risk
+│
+│  ██████████████████████████████░  95/100
+│  Potential after fixes
+└────────────────────────────────────────┘
 ```
 
 ## Configuration
@@ -111,19 +93,18 @@ Create a `remediation.config.js` file in your project root:
 ```js
 module.exports = {
   // Ignore files/patterns
-  ignore: ['*.test.tsx', '*.stories.tsx', 'src/__tests__/**'],
+  ignore: ['*.test.tsx', '*.stories.tsx'],
 
-  // Enable/disable rules or change severity
+  // Enable/disable rules
   rules: {
-    'colors/hardcoded': 'off',           // Disable rule
-    'components/variant-split': 'warning', // Set severity
+    'colors/hardcoded': 'off',
+    'drift': 'warning',
   },
 
-  // Custom token mappings
+  // Custom token mappings (for token-bypass)
   tokens: {
-    '#FF0000': 'colors.danger',
-    '#00FF00': 'colors.success',
-    '16px': 'spacing.4',
+    '#1976D2': 'colors.primary',
+    '#D32F2F': 'colors.danger',
   },
 };
 ```
@@ -136,12 +117,27 @@ module.exports = {
 | `rules` | `Record<string, string>` | Rule settings (`off`, `warning`, `error`, `info`) |
 | `tokens` | `Record<string, string>` | Custom token mappings (value → token name) |
 
+### Default Ignore Patterns
+
+These directories are ignored by default:
+`node_modules`, `dist`, `build`, `.next`, `.nuxt`, `out`, `coverage`, `.cache`, `.parcel-cache`, `.webpack`, `.turbo`, `.vercel`, `.netlify`, `tmp`, `temp`
+
+## UI Health Score
+
+The UI Health Score (0-100) measures how well your code follows the design system:
+
+| Score | Label |
+|-------|-------|
+| 0-29 | Healthy |
+| 30-69 | Needs attention |
+| 70-89 | Technical debt |
+| 90-100 | Critical |
+
+The "Potential after fixes" shows what your score could be after applying available fixes.
+
 ## Auto-Fix
 
-When not using `--dry-run`, remediation will attempt to automatically fix violations where possible:
-
-- Token violations are replaced with design system token references
-- Git checkpoint is created before applying changes
+When using `--dry-run`, no changes are applied. Without the flag, remediation will attempt to automatically fix violations where possible.
 
 ## License
 
