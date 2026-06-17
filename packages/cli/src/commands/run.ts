@@ -422,4 +422,4 @@ function generateReport(result: any, basePath: string): string {
   return lines.join('\n');
 }
 
-program.parse();
+export { program };

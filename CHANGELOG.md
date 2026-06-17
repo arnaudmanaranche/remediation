@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-06-17
+
+### Added
+- `remediation analyze` command for design system analysis
+- Full pipeline: EXTRACTION → NORMALIZATION → CLUSTERING → DECISION
+- Color clustering using color distance algorithm
+- Spacing clustering with proximity detection
+- Token proposals with confidence levels (high, medium, low)
+- `--output tokens.ts` to generate design system file
+
 ## [0.8.0] - 2026-06-17
 
 ### Added

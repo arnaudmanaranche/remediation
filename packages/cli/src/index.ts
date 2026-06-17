@@ -1,3 +1,7 @@
 #!/usr/bin/env node
 
-import './commands/run';
+import { program } from './commands/run';
+import { registerAnalyzeCommand } from './commands/analyze';
+
+registerAnalyzeCommand(program);
+program.parse();
