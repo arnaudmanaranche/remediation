@@ -17,21 +17,34 @@ Or run directly with npx:
 npx remediation scan
 ```
 
-## Usage
+## Commands
 
-### Scan all rules
+### Scan — Detect violations
 
 ```bash
 remediation scan [path]
 ```
 
-### Scan tokens only
+### Tokens — Token rules only
 
 ```bash
 remediation tokens [path]
 ```
 
-### Options
+### Analyze — Design system analysis + codemod
+
+```bash
+remediation analyze [path]
+```
+
+| Flag | Description |
+|------|-------------|
+| `--codemod` | Apply token replacements automatically |
+| `--dry-run` | Preview changes without applying (default) |
+| `--output <file>` | Generate `tokens.ts` file |
+| `--min-confidence <level>` | Filter by confidence (`high`, `medium`, `low`) |
+
+## Scan Options
 
 | Flag | Description |
 |------|-------------|
@@ -60,7 +73,23 @@ remediation tokens [path]
 | `token-bypass` | Detects hardcoded values when a token already exists |
 | `drift` | Detects duplicate components that should be merged |
 
-## Example Output
+## Pipeline
+
+`remediation analyze` runs a full pipeline:
+
+```
+EXTRACTION → NORMALIZATION → CLUSTERING → DECISION → CODEMOD
+```
+
+1. **Extraction** — Scans codebase for all design values (colors, spacing, typography)
+2. **Normalization** — Converts all values to canonical form (hex, px)
+3. **Clustering** — Groups similar values using color distance algorithm
+4. **Decision** — Proposes tokens with confidence levels (high, medium, low)
+5. **Codemod** — Replaces hardcoded values with token references
+
+## Example
+
+### Scan output
 
 ```
 ⚡ Scanning... 26/26 [token-bypass] [drift]
@@ -69,13 +98,6 @@ remediation tokens [path]
 Violations by file:
   src/components/Button.tsx 3W
   src/components/ButtonPrimary.tsx 2W
-  src/components/CTAButton.tsx 2W
-
-┌─ Summary ─────────────────────────────┐
-│  ⚠   7 warnings  ███████████████
-│  ────────────────────────────────────
-│    7 total violations
-└────────────────────────────────────────┘
 
 ┌─ UI Health Score ──────────────────────┐
 │  ████████████████████████░░░░░░  82/100
@@ -84,6 +106,53 @@ Violations by file:
 │  ██████████████████████████████░  95/100
 │  Potential after fixes
 └────────────────────────────────────────┘
+```
+
+### Analyze output
+
+```
+⚡ Analyzing design system...
+⚡ Analysis complete in 0.0s
+
+┌─ Extraction ──────────────────────────┐
+│  140 design values found
+│  colors       117
+│  spacing      18
+│  typography   5
+└────────────────────────────────────────┘
+
+┌─ Color Clusters ──────────────────────┐
+│  #ea580c 17x (3 files)
+│  #2563eb 13x (2 files)
+│  #ffffff 10x (4 files)
+│  #93c5fd 6x (3 files)
+└────────────────────────────────────────┘
+
+┌─ Token Proposals ─────────────────────┐
+│  19 tokens proposed
+│  ● 6 high confidence
+│  ● 11 medium confidence
+│  ● 2 low confidence
+│
+│  Top proposals:
+│    ● red = #ea580c (17x)
+│    ● blue = #2563eb (13x)
+│    ● white = #ffffff (10x)
+└────────────────────────────────────────┘
+```
+
+### Codemod preview
+
+```
+Codemod Preview
+════════════════════════════════════════════════════════════
+
+📄 src/components/Button.tsx
+────────────────────────────────────────────────────────────
+  L16:60  "#93C5FD" → colors.blue
+  L49:90  "#EA580C" → colors.red
+
+Total: 50 changes in 10 files
 ```
 
 ## Configuration
@@ -109,35 +178,10 @@ module.exports = {
 };
 ```
 
-### Config Options
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `ignore` | `string[]` | Glob patterns to exclude from scanning |
-| `rules` | `Record<string, string>` | Rule settings (`off`, `warning`, `error`, `info`) |
-| `tokens` | `Record<string, string>` | Custom token mappings (value → token name) |
-
 ### Default Ignore Patterns
 
 These directories are ignored by default:
 `node_modules`, `dist`, `build`, `.next`, `.nuxt`, `out`, `coverage`, `.cache`, `.parcel-cache`, `.webpack`, `.turbo`, `.vercel`, `.netlify`, `tmp`, `temp`
-
-## UI Health Score
-
-The UI Health Score (0-100) measures how well your code follows the design system:
-
-| Score | Label |
-|-------|-------|
-| 0-29 | Healthy |
-| 30-69 | Needs attention |
-| 70-89 | Technical debt |
-| 90-100 | Critical |
-
-The "Potential after fixes" shows what your score could be after applying available fixes.
-
-## Auto-Fix
-
-When using `--dry-run`, no changes are applied. Without the flag, remediation will attempt to automatically fix violations where possible.
 
 ## License
 
