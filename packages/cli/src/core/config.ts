@@ -9,11 +9,29 @@ export interface RemediationConfig {
 
 const CONFIG_FILE = 'remediation.config.js';
 
+const DEFAULT_IGNORE = [
+  'node_modules',
+  'dist',
+  'build',
+  '.next',
+  '.nuxt',
+  'out',
+  'coverage',
+  '.cache',
+  '.parcel-cache',
+  '.webpack',
+  '.turbo',
+  '.vercel',
+  '.netlify',
+  'tmp',
+  'temp',
+];
+
 export function loadConfig(projectPath: string): RemediationConfig {
   const configPath = path.join(projectPath, CONFIG_FILE);
 
   if (!fs.existsSync(configPath)) {
-    return {};
+    return { ignore: [...DEFAULT_IGNORE] };
   }
 
   try {
@@ -23,7 +41,7 @@ export function loadConfig(projectPath: string): RemediationConfig {
     return validateConfig(config);
   } catch (error) {
     console.error(`Failed to load ${CONFIG_FILE}:`, error);
-    return {};
+    return { ignore: [...DEFAULT_IGNORE] };
   }
 }
 
@@ -31,7 +49,9 @@ function validateConfig(config: any): RemediationConfig {
   const validated: RemediationConfig = {};
 
   if (Array.isArray(config.ignore)) {
-    validated.ignore = config.ignore.filter((p: any) => typeof p === 'string');
+    validated.ignore = [...DEFAULT_IGNORE, ...config.ignore.filter((p: any) => typeof p === 'string')];
+  } else {
+    validated.ignore = [...DEFAULT_IGNORE];
   }
 
   if (config.rules && typeof config.rules === 'object') {
