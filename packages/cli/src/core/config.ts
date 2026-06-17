@@ -1,0 +1,116 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+export interface RemediationConfig {
+  ignore?: string[];
+  rules?: Record<string, 'off' | 'warning' | 'error' | 'info'>;
+  tokens?: Record<string, string>;
+}
+
+const CONFIG_FILE = 'remediation.config.js';
+
+export function loadConfig(projectPath: string): RemediationConfig {
+  const configPath = path.join(projectPath, CONFIG_FILE);
+
+  if (!fs.existsSync(configPath)) {
+    return {};
+  }
+
+  try {
+    const absolutePath = path.resolve(configPath);
+    delete require.cache[require.resolve(absolutePath)];
+    const config = require(absolutePath);
+    return validateConfig(config);
+  } catch (error) {
+    console.error(`Failed to load ${CONFIG_FILE}:`, error);
+    return {};
+  }
+}
+
+function validateConfig(config: any): RemediationConfig {
+  const validated: RemediationConfig = {};
+
+  if (Array.isArray(config.ignore)) {
+    validated.ignore = config.ignore.filter((p: any) => typeof p === 'string');
+  }
+
+  if (config.rules && typeof config.rules === 'object') {
+    validated.rules = {};
+    for (const [rule, level] of Object.entries(config.rules)) {
+      if (['off', 'warning', 'error', 'info'].includes(level as string)) {
+        validated.rules[rule] = level as 'off' | 'warning' | 'error' | 'info';
+      }
+    }
+  }
+
+  if (config.tokens && typeof config.tokens === 'object') {
+    validated.tokens = {};
+    for (const [value, token] of Object.entries(config.tokens)) {
+      if (typeof value === 'string' && typeof token === 'string') {
+        validated.tokens[value] = token;
+      }
+    }
+  }
+
+  return validated;
+}
+
+export function shouldIgnoreFile(filePath: string, ignorePatterns: string[]): boolean {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+
+  for (const pattern of ignorePatterns) {
+    if (matchGlob(normalizedPath, pattern)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function matchGlob(filePath: string, pattern: string): boolean {
+  const normalizedPattern = pattern.replace(/\\/g, '/');
+
+  if (normalizedPattern.includes('**')) {
+    const prefix = normalizedPattern.split('**')[0];
+    const suffix = normalizedPattern.split('**').slice(1).join('**');
+
+    if (prefix && !filePath.startsWith(prefix)) {
+      return false;
+    }
+    if (suffix && !filePath.endsWith(suffix.replace(/^\//, ''))) {
+      return false;
+    }
+    return true;
+  }
+
+  if (normalizedPattern.includes('*')) {
+    const regex = new RegExp(
+      '^' +
+      normalizedPattern
+        .replace(/\./g, '\\.')
+        .replace(/\*/g, '[^/]*')
+        .replace(/\?/g, '[^/]') +
+      '$'
+    );
+    return regex.test(filePath);
+  }
+
+  return filePath.includes(normalizedPattern);
+}
+
+export function getRuleSeverity(
+  ruleName: string,
+  config: RemediationConfig,
+  defaultSeverity: string
+): string {
+  if (!config.rules) {
+    return defaultSeverity;
+  }
+
+  const configured = config.rules[ruleName];
+  if (configured === 'off') {
+    return 'off';
+  }
+
+  return configured || defaultSeverity;
+}

@@ -21,7 +21,7 @@ export interface Violation {
   line: number;
   column: number;
   message: string;
-  severity: 'error' | 'warning' | 'info';
+  severity: 'error' | 'warning' | 'info' | 'off';
   suggestion?: string;
 }
 

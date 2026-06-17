@@ -99,6 +99,38 @@ Risk score: 2
 }
 ```
 
+## Configuration
+
+Create a `remediation.config.js` file in your project root:
+
+```js
+module.exports = {
+  // Ignore files/patterns
+  ignore: ['*.test.tsx', '*.stories.tsx', 'src/__tests__/**'],
+
+  // Enable/disable rules or change severity
+  rules: {
+    'colors/hardcoded': 'off',           // Disable rule
+    'components/variant-split': 'warning', // Set severity
+  },
+
+  // Custom token mappings
+  tokens: {
+    '#FF0000': 'colors.danger',
+    '#00FF00': 'colors.success',
+    '16px': 'spacing.4',
+  },
+};
+```
+
+### Config Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `ignore` | `string[]` | Glob patterns to exclude from scanning |
+| `rules` | `Record<string, string>` | Rule settings (`off`, `warning`, `error`, `info`) |
+| `tokens` | `Record<string, string>` | Custom token mappings (value → token name) |
+
 ## Auto-Fix
 
 When not using `--dry-run`, remediation will attempt to automatically fix violations where possible:

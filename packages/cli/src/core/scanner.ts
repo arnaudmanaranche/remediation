@@ -1,23 +1,27 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Rule, FileContent, Violation, ScanResult, FileViolation } from './types';
+import { loadConfig, shouldIgnoreFile, getRuleSeverity, RemediationConfig } from './config';
 
 export async function scanProject(
   projectPath: string,
   rules: Rule[],
   extensions: string[] = ['.ts', '.tsx', '.js', '.jsx']
 ): Promise<ScanResult> {
+  const configDir = fs.statSync(projectPath).isFile() ? path.dirname(projectPath) : projectPath;
+  const config = loadConfig(configDir);
   const fileViolations: FileViolation[] = [];
 
-  const fileRules = rules.filter(r => !r.detectProject);
-  const projectRules = rules.filter(r => r.detectProject);
+  const activeRules = filterRulesByConfig(rules, config);
+  const fileRules = activeRules.filter(r => !r.detectProject);
+  const projectRules = activeRules.filter(r => r.detectProject);
 
-  const files = fs.statSync(projectPath).isFile() ? [projectPath] : collectFiles(projectPath, extensions);
+  const files = fs.statSync(projectPath).isFile() ? [projectPath] : collectFiles(projectPath, extensions, config);
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf-8');
     const fileContent: FileContent = { path: file, content };
-    const violations = runRules(fileContent, fileRules);
+    const violations = runRules(fileContent, fileRules, config);
 
     if (violations.length > 0) {
       fileViolations.push({
@@ -31,7 +35,8 @@ export async function scanProject(
   for (const rule of projectRules) {
     if (rule.detectProject) {
       const violations = await rule.detectProject(projectPath);
-      const grouped = groupViolationsByFile(violations);
+      const filtered = filterViolationsByConfig(violations, config);
+      const grouped = groupViolationsByFile(filtered);
 
       for (const [filePath, ruleViolations] of grouped) {
         const existing = fileViolations.find(f => f.path === filePath);
@@ -61,13 +66,16 @@ export function scanDirectory(
   rules: Rule[],
   extensions: string[] = ['.ts', '.tsx', '.js', '.jsx']
 ): ScanResult {
-  const files = fs.statSync(dir).isFile() ? [dir] : collectFiles(dir, extensions);
+  const configDir = fs.statSync(dir).isFile() ? path.dirname(dir) : dir;
+  const config = loadConfig(configDir);
+  const activeRules = filterRulesByConfig(rules, config);
+  const files = fs.statSync(dir).isFile() ? [dir] : collectFiles(dir, extensions, config);
   const fileViolations: FileViolation[] = [];
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf-8');
     const fileContent: FileContent = { path: file, content };
-    const violations = runRules(fileContent, rules);
+    const violations = runRules(fileContent, activeRules, config);
 
     if (violations.length > 0) {
       fileViolations.push({
@@ -85,14 +93,19 @@ export function scanDirectory(
   };
 }
 
-function collectFiles(dir: string, extensions: string[]): string[] {
+function collectFiles(dir: string, extensions: string[], config: RemediationConfig = {}): string[] {
   const files: string[] = [];
+  const ignorePatterns = config.ignore || [];
 
   function traverse(currentDir: string) {
     const entries = fs.readdirSync(currentDir, { withFileTypes: true });
 
     for (const entry of entries) {
       const fullPath = path.join(currentDir, entry.name);
+
+      if (shouldIgnoreFile(fullPath, ignorePatterns)) {
+        continue;
+      }
 
       if (entry.isDirectory()) {
         if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
@@ -108,12 +121,16 @@ function collectFiles(dir: string, extensions: string[]): string[] {
   return files;
 }
 
-function runRules(file: FileContent, rules: Rule[]): Violation[] {
+function runRules(file: FileContent, rules: Rule[], config: RemediationConfig = {}): Violation[] {
   const violations: Violation[] = [];
 
   for (const rule of rules) {
     const ruleViolations = rule.detect(file);
-    violations.push(...ruleViolations);
+    const filtered = ruleViolations.map(v => ({
+      ...v,
+      severity: getRuleSeverity(v.rule, config, v.severity) as Violation['severity'],
+    })).filter(v => v.severity !== 'off');
+    violations.push(...filtered);
   }
 
   return violations;
@@ -177,4 +194,26 @@ function groupViolationsByFile(violations: Violation[]): Map<string, Violation[]
   }
 
   return grouped;
+}
+
+function filterRulesByConfig(rules: Rule[], config: RemediationConfig): Rule[] {
+  if (!config.rules) {
+    return rules;
+  }
+
+  return rules.filter(rule => {
+    const configured = config.rules![rule.name];
+    return configured !== 'off';
+  });
+}
+
+function filterViolationsByConfig(violations: Violation[], config: RemediationConfig): Violation[] {
+  if (!config.rules) {
+    return violations;
+  }
+
+  return violations.map(v => ({
+    ...v,
+    severity: getRuleSeverity(v.rule, config, v.severity) as Violation['severity'],
+  })).filter(v => v.severity !== 'off');
 }

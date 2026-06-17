@@ -3,3 +3,4 @@ export { scanDirectory, scanProject } from './scanner';
 export { applyTransforms } from './transformer';
 export { getTransformsMap, allTransforms } from './transforms';
 export { allRules, componentRules } from './rules';
+export { loadConfig, RemediationConfig } from './config';
