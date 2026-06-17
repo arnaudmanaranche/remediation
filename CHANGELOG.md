@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-06-17
+
+### Added
+- `token-bypass` rule: detects hardcoded values when a token already exists
+- `drift` rule: detects duplicate components that should be merged
+- "UI Health Score" replaces "Risk Score"
+- "Potential score after fixes" in output
+
+### Removed
+- `components/dead` rule (knip integration)
+- `components/duplicates` rule (jscpd integration)
+- `components/variant-split` rule (false positives with Radix/shadcn/MUI)
+
 ## [0.7.3] - 2026-06-17
 
 ### Added

@@ -226,7 +226,8 @@ function printTerminalVerbose(result: any, basePath: string) {
   }
 
   printSummary(result);
-  printRiskScore(result.riskScore);
+  const { current, potential } = calculateLogRiskScore(result);
+  printRiskScore(current, potential);
 }
 
 function printTerminalCompact(result: any, basePath: string) {
@@ -251,7 +252,8 @@ function printTerminalCompact(result: any, basePath: string) {
   }
 
   printSummary(result);
-  printRiskScore(result.riskScore);
+  const { current, potential } = calculateLogRiskScore(result);
+  printRiskScore(current, potential);
 }
 
 function printSummaryCompact(result: any) {
@@ -304,7 +306,7 @@ function getProgressBar(value: number, total: number, color: 'red' | 'yellow' | 
   return colorFn('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
 }
 
-function calculateLogRiskScore(result: any): number {
+function calculateLogRiskScore(result: any): { current: number; potential: number } {
   const { errors, warnings, infos } = result.summary;
 
   const errorScore = errors * 10;
@@ -313,11 +315,16 @@ function calculateLogRiskScore(result: any): number {
 
   const raw = errorScore + warningScore + infoScore;
   const log = Math.log(raw + 1) * 15;
+  const current = Math.min(Math.round(log), 100);
 
-  return Math.min(Math.round(log), 100);
+  const fixableScore = (errors * 10) + (warnings * 1.5) + (infos * 0.3);
+  const potentialRaw = fixableScore * 0.3;
+  const potential = Math.min(Math.round(Math.log(potentialRaw + 1) * 15), 100);
+
+  return { current, potential: Math.max(current, potential) };
 }
 
-function printRiskScore(score: number) {
+function printRiskScore(score: number, potentialScore?: number) {
   const width = 30;
   const filled = Math.round((score / 100) * width);
   const empty = width - filled;
@@ -327,9 +334,18 @@ function printRiskScore(score: number) {
   else if (score < 70) color = 'yellow';
   else color = 'red';
 
-  console.log(pc.bold('\n┌─ Risk Score ───────────────────────────┐'));
+  console.log(pc.bold('\n┌─ UI Health Score ──────────────────────┐'));
   console.log(`│  ${pc[color]('█'.repeat(filled))}${pc.dim('░'.repeat(empty))}  ${pc.bold(score.toString())}/100`);
   console.log(`│  ${pc.dim(getRiskLabel(score))}`);
+
+  if (potentialScore !== undefined && potentialScore > score) {
+    const potentialFilled = Math.round((potentialScore / 100) * width);
+    const potentialEmpty = width - potentialFilled;
+    console.log(`│`);
+    console.log(`│  ${pc.green('█'.repeat(potentialFilled))}${pc.dim('░'.repeat(potentialEmpty))}  ${pc.bold(potentialScore.toString())}/100`);
+    console.log(`│  ${pc.dim('Potential after fixes')}`);
+  }
+
   console.log(pc.bold('└────────────────────────────────────────┘'));
 }
 
@@ -384,16 +400,24 @@ function generateReport(result: any, basePath: string): string {
   lines.push(`  ${result.files.length} files affected`);
   lines.push('');
 
-  lines.push('RISK SCORE');
+  lines.push('UI HEALTH SCORE');
   lines.push('─'.repeat(60));
 
-  const score = calculateLogRiskScore(result);
+  const { current, potential } = calculateLogRiskScore(result);
   const width = 40;
-  const filled = Math.round((score / 100) * width);
+  const filled = Math.round((current / 100) * width);
   const empty = width - filled;
 
-  lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${score}/100`);
-  lines.push(`  ${getRiskLabel(score)}`);
+  lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${current}/100`);
+  lines.push(`  ${getRiskLabel(current)}`);
+
+  if (potential > current) {
+    const potentialFilled = Math.round((potential / 100) * width);
+    const potentialEmpty = width - potentialFilled;
+    lines.push('');
+    lines.push(`  ${'█'.repeat(potentialFilled)}${'░'.repeat(potentialEmpty)}  ${potential}/100`);
+    lines.push(`  Potential after fixes`);
+  }
 
   return lines.join('\n');
 }
