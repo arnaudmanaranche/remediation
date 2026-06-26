@@ -1,4 +1,5 @@
 import { Rule, FileContent, Violation } from '../../../types';
+import { getStyleLines } from '../../lineFilter';
 
 const SPACING_PATTERNS = [
   { pattern: /(\d+)px/g, type: 'px' },
@@ -32,14 +33,10 @@ export const spacingRule: Rule = {
 
   detect(file: FileContent): Violation[] {
     const violations: Violation[] = [];
-    const lines = file.content.split('\n');
+    const lines = getStyleLines(file.content);
 
-    lines.forEach((line, index) => {
-      const isTypographyProperty = TYPOGRAPHY_PROPERTIES.some(prop => line.includes(prop));
-      
-      if (isTypographyProperty) {
-        return;
-      }
+    for (const { content: line, index } of lines) {
+      if (TYPOGRAPHY_PROPERTIES.some(prop => line.includes(prop))) continue;
 
       SPACING_PATTERNS.forEach(({ pattern, type }) => {
         const regex = new RegExp(pattern.source, pattern.flags);
@@ -63,7 +60,7 @@ export const spacingRule: Rule = {
           }
         }
       });
-    });
+    }
 
     return violations;
   },

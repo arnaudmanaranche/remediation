@@ -1,4 +1,5 @@
 import { Rule, FileContent, Violation } from '../../../types';
+import { getStyleLines } from '../../lineFilter';
 
 const RADIUS_PATTERNS = [
   { pattern: /border-radius\s*:\s*(\d+(?:\.\d+)?)(px|rem|em)/g, type: 'css' },
@@ -26,9 +27,9 @@ export const radiusRule: Rule = {
       return violations;
     }
 
-    const lines = file.content.split('\n');
+    const lines = getStyleLines(file.content);
 
-    lines.forEach((line, index) => {
+    for (const { content: line, index } of lines) {
       RADIUS_PATTERNS.forEach(({ pattern, type }) => {
         const regex = new RegExp(pattern.source, pattern.flags);
         let match;
@@ -52,7 +53,7 @@ export const radiusRule: Rule = {
           }
         }
       });
-    });
+    }
 
     return violations;
   },

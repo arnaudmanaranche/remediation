@@ -1,4 +1,5 @@
 import { Rule, FileContent, Violation } from '../../../types';
+import { getStyleLines } from '../../lineFilter';
 
 const SHADOW_PATTERNS = [
   { pattern: /box-shadow\s*:\s*([^;]+)/g, type: 'css' },
@@ -18,9 +19,9 @@ export const shadowsRule: Rule = {
       return violations;
     }
 
-    const lines = file.content.split('\n');
+    const lines = getStyleLines(file.content);
 
-    lines.forEach((line, index) => {
+    for (const { content: line, index } of lines) {
       SHADOW_PATTERNS.forEach(({ pattern }) => {
         const regex = new RegExp(pattern.source, pattern.flags);
         let match;
@@ -41,7 +42,7 @@ export const shadowsRule: Rule = {
           }
         }
       });
-    });
+    }
 
     return violations;
   },

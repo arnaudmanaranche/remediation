@@ -22,9 +22,21 @@ describe('colors/hardcoded', () => {
     expect(result[0].message).toContain('rgba');
   });
 
-  it('suggests token for known colors', () => {
-    const result = colorsRule.detect(makeFile('color: "#2563EB"'));
-    expect(result[0].suggestion).toContain('colors');
+  it('does not flag colors in comments', () => {
+    const result = colorsRule.detect(makeFile('// color: "#FF0000"'));
+    expect(result).toHaveLength(0);
+  });
+
+  it('does not flag colors in import statements', () => {
+    const result = colorsRule.detect(makeFile("import { colors } from './tokens' // contains #FF0000"));
+    expect(result).toHaveLength(0);
+  });
+
+  it('does not flag colors inside block comments', () => {
+    const input = ['/* brand color: "#FF0000" */', 'color: "#2563eb"'].join('\n');
+    const result = colorsRule.detect(makeFile(input));
+    expect(result).toHaveLength(1);
+    expect(result[0].line).toBe(2);
   });
 
   it('detects colors in any file type', () => {
