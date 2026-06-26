@@ -291,7 +291,7 @@ function printSummary(result: any) {
 
   console.log(`│  ${pc.dim('─'.repeat(36))}`);
   console.log(`│  ${pc.bold(total.toString().padStart(3))} total violations`);
-
+  console.log(`│  ${pc.dim(result.files.length.toString().padStart(3))} files affected`);
   console.log(pc.bold('└────────────────────────────────────────┘'));
 }
 
