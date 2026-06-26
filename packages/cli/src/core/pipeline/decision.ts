@@ -75,15 +75,3 @@ export function decideTokens(
   };
 }
 
-export function filterByConfidence(
-  result: DecisionResult,
-  minConfidence: 'high' | 'medium' | 'low'
-): DecisionResult {
-  const order = { high: 0, medium: 1, low: 2 };
-  const minOrder = order[minConfidence];
-
-  return {
-    ...result,
-    proposals: result.proposals.filter(p => order[p.confidence] <= minOrder),
-  };
-}

@@ -5,11 +5,6 @@ export interface Rule {
   detectProject?: (projectPath: string) => Promise<Violation[]>;
 }
 
-export interface Transform {
-  name: string;
-  fix: (violation: Violation, file: FileContent) => string;
-}
-
 export interface FileContent {
   path: string;
   content: string;

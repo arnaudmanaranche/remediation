@@ -108,7 +108,7 @@ function normalizeSpacing(value: string): { canonical: string; px: number } | nu
   return null;
 }
 
-export function normalizeValue(value: any): NormalizedValue | null {
+function normalizeValue(value: any): NormalizedValue | null {
   const base = {
     type: value.type,
     raw: value.raw,

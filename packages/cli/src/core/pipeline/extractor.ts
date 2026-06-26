@@ -24,7 +24,7 @@ const SPACING_PATTERNS = [
 
 const TYPOGRAPHY_PROPERTIES = ['font-size', 'fontSize', 'font-weight', 'fontWeight', 'line-height', 'lineHeight'];
 
-export function extractFromFile(filePath: string): ExtractedValue[] {
+function extractFromFile(filePath: string): ExtractedValue[] {
   const values: ExtractedValue[] = [];
 
   try {
@@ -32,7 +32,6 @@ export function extractFromFile(filePath: string): ExtractedValue[] {
     const lines = content.split('\n');
 
     lines.forEach((line, lineIndex) => {
-      // Extract colors
       for (const { regex, type } of COLOR_PATTERNS) {
         const r = new RegExp(regex.source, regex.flags);
         let match;
@@ -41,61 +40,30 @@ export function extractFromFile(filePath: string): ExtractedValue[] {
           if (type === 'hex') value = match[1];
           if (type === 'rgb') value = `rgb(${match[1]}, ${match[2]}, ${match[3]})`;
           if (type === 'hsl') value = `hsl(${match[1]}, ${match[2]}%, ${match[3]}%)`;
-
-          values.push({
-            type: 'color',
-            value,
-            raw: match[0],
-            file: filePath,
-            line: lineIndex + 1,
-            column: match.index + 1,
-          });
+          values.push({ type: 'color', value, raw: match[0], file: filePath, line: lineIndex + 1, column: match.index + 1 });
         }
       }
 
-      // Extract spacing
       const isTypography = TYPOGRAPHY_PROPERTIES.some(prop => line.includes(prop));
+
       if (!isTypography) {
         for (const { regex } of SPACING_PATTERNS) {
           const r = new RegExp(regex.source, regex.flags);
           let match;
           while ((match = r.exec(line)) !== null) {
-            values.push({
-              type: 'spacing',
-              value: match[0],
-              raw: match[0],
-              file: filePath,
-              line: lineIndex + 1,
-              column: match.index + 1,
-            });
+            values.push({ type: 'spacing', value: match[0], raw: match[0], file: filePath, line: lineIndex + 1, column: match.index + 1 });
           }
         }
       }
 
-      // Extract typography
       if (isTypography) {
-        const fontSizeMatch = line.match(/(\d+(?:\.\d+)?)(px|rem|em)/);
-        if (fontSizeMatch) {
-          values.push({
-            type: 'typography',
-            value: fontSizeMatch[0],
-            raw: fontSizeMatch[0],
-            file: filePath,
-            line: lineIndex + 1,
-            column: fontSizeMatch.index! + 1,
-          });
+        const sizeMatch = line.match(/(\d+(?:\.\d+)?)(px|rem|em)/);
+        if (sizeMatch) {
+          values.push({ type: 'typography', value: sizeMatch[0], raw: sizeMatch[0], file: filePath, line: lineIndex + 1, column: sizeMatch.index! + 1 });
         }
-
-        const fontWeightMatch = line.match(/font-weight:\s*(\d+|bold|normal)/);
-        if (fontWeightMatch) {
-          values.push({
-            type: 'typography',
-            value: fontWeightMatch[1],
-            raw: fontWeightMatch[0],
-            file: filePath,
-            line: lineIndex + 1,
-            column: fontWeightMatch.index! + 1,
-          });
+        const weightMatch = line.match(/font-weight:\s*(\d+|bold|normal)/);
+        if (weightMatch) {
+          values.push({ type: 'typography', value: weightMatch[1], raw: weightMatch[0], file: filePath, line: lineIndex + 1, column: weightMatch.index! + 1 });
         }
       }
     });

@@ -12,9 +12,3 @@ export const tokenRules: Rule[] = [
   radiusRule,
   shadowsRule,
 ];
-
-export { colorsRule } from './colors/rule';
-export { spacingRule } from './spacing/rule';
-export { typographyRule } from './typography/rule';
-export { radiusRule } from './radius/rule';
-export { shadowsRule } from './shadows/rule';

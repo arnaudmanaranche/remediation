@@ -13,7 +13,7 @@ const PROP_CATEGORY_MAP: Map<string, PropCategory> = new Map([
   ...Array.from(SHADOW_PROPS).map((p): [string, PropCategory] => [p, 'shadow']),
 ]);
 
-export function categoryOf(cssProperty: string): PropCategory | null {
+function categoryOf(cssProperty: string): PropCategory | null {
   return PROP_CATEGORY_MAP.get(cssProperty) ?? null;
 }
 

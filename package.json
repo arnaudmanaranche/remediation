@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "build": "cd packages/cli && npm run build",
+    "knip": "knip",
     "test": "echo \"Error: no test specified\" && exit 1",
     "changeset:patch": "cd packages/cli && npm run changeset:patch",
     "changeset:minor": "cd packages/cli && npm run changeset:minor",
