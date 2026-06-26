@@ -54,10 +54,10 @@ remediation analyze [path]
 
 | Flag | Description |
 |------|-------------|
-| `--codemod` | Apply token replacements automatically |
-| `--dry-run` | Preview changes without applying (default) |
+| `--codemod` | Preview token replacements (dry-run by default) |
+| `--codemod --no-dry-run` | Apply token replacements to files |
 | `--output <file>` | Generate `tokens.ts` file |
-| `--min-confidence <level>` | Filter by confidence (`high`, `medium`, `low`) |
+| `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
 
 ## Rules
 
@@ -99,24 +99,39 @@ EXTRACTION → NORMALIZATION → CLUSTERING → DECISION → CODEMOD
 ### Scan output
 
 ```
-⚡ Scanning... 26/26 [token-bypass] [drift]
-⚡ Scanned 26 files in 1.2s
+⚡ ████████████████████████  2423/2423
+⚡ Scanned 2423 files in 3.4s
 
-Violations by file:
-  src/components/Button.tsx 3W
-  src/components/ButtonPrimary.tsx 2W
+Violations by rule:
+  colors/hardcoded             237  ████████████████  45 files
+  spacing/hardcoded            102  ██████░░░░░░░░░░  31 files
+  token-bypass                  58  ███░░░░░░░░░░░░░  22 files
+  typography/hardcoded          21  █░░░░░░░░░░░░░░░  14 files
+  drift                          4  █░░░░░░░░░░░░░░░   3 files
+
+Top affected files:
+   31  src/components/Button.tsx
+   18  src/pages/Dashboard.tsx
+   14  src/components/Card.tsx
+    9  src/components/Badge.tsx
+    8  src/components/Text.tsx
+  ... and 40 more files
+
+  Run with --verbose to see all violations, --rule <name> to filter by rule.
 
 ┌─ Summary ─────────────────────────────┐
-│  ⚠  12 warnings  ████████░░░░░░░
-│  ─────────────────────────────────────
-│  12 total violations
+│  ✖  237 errors    ████████████████
+│  ⚠  185 warnings  ████████████░░░░
+│  ────────────────────────────────────
+│  422 total violations
+│   45 files affected
 └────────────────────────────────────────┘
 
 ┌─ Health Score ─────────────────────────┐
-│  ██████████████████░░░░░░░░░░░░  62/100
-│  Needs work
+│  ██████░░░░░░░░░░░░░░░░░░░░░░░░  18/100
+│  Critical
 │
-│  ████████████████████████░░░░░░  82/100
+│  █████████████░░░░░░░░░░░░░░░░░  41/100
 │  Potential after fixes
 └────────────────────────────────────────┘
 ```
@@ -127,36 +142,49 @@ Health score: **100 = clean codebase, 0 = critical**. Labels: Excellent / Good /
 
 ```
 ⚡ Analyzing design system...
-⚡ Analysis complete in 0.0s
+⚡ Analysis complete in 1.2s
 
 ┌─ Extraction ──────────────────────────┐
-│  140 design values found
-│  colors       117
-│  spacing      18
-│  typography   5
+│  284 design values found
+│  color        189
+│  spacing       71
+│  typography    24
 └────────────────────────────────────────┘
 
 ┌─ Color Clusters ──────────────────────┐
-│  #ea580c 17x (3 files)
-│  #2563eb 13x (2 files)
-│  #ffffff 10x (4 files)
-│  #93c5fd 6x (3 files)
+│  #2563eb 5x (5 files)
+│  #dc2626 3x (3 files)
+│  #ffffff 4x (4 files)
+│  #27272a 3x (3 files)
+│  ... and 8 more
+└────────────────────────────────────────┘
+
+┌─ Spacing Clusters ────────────────────┐
+│  8px      9x (6 files)
+│  16px     5x (5 files)
+│  24px     2x (2 files)
 └────────────────────────────────────────┘
 
 ┌─ Token Proposals ─────────────────────┐
-│  19 tokens proposed
-│  ● 6 high confidence
-│  ● 11 medium confidence
-│  ● 2 low confidence
+│  16 tokens proposed
+│  ● 4 high confidence
+│  ● 12 medium confidence
 │
 │  Top proposals:
-│    ● red = #ea580c (17x)
-│    ● blue = #2563eb (13x)
-│    ● white = #ffffff (10x)
+│    ● blue = #2563eb (5x)
+│    ● sm = 8px (9x)
+│    ● md = 16px (5x)
+│    ● red = #dc2626 (3x)
+│    ● white = #ffffff (4x)
+│    ... and 11 more
 └────────────────────────────────────────┘
 ```
 
 ### Codemod preview
+
+```bash
+remediation analyze [path] --codemod
+```
 
 ```
 Codemod Preview
@@ -164,10 +192,24 @@ Codemod Preview
 
 📄 src/components/Button.tsx
 ────────────────────────────────────────────────────────────
-  L16:60  "#93C5FD" → colors.blue
-  L49:90  "#EA580C" → colors.red
+  L14:26  '#2563eb' → colors.blue
+  L16:23  16px → spacing.md
+  L16:19  8px → spacing.sm
+  L15:16  '#ffffff' → colors.white
 
-Total: 50 changes in 10 files
+📄 src/components/Card.tsx
+────────────────────────────────────────────────────────────
+  L8:18   1px → spacing.xs
+  L11:24  16px → spacing.md
+  L9:24   8px → spacing.sm
+  L7:26   '#ffffff' → colors.white
+  L15:27  '#27272a' → colors.black
+
+════════════════════════════════════════════════════════════
+Total: 57 changes in 7 files
+
+DRY RUN — no changes applied
+Run with --codemod --no-dry-run to apply changes
 ```
 
 ## Configuration
