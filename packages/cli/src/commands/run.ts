@@ -4,13 +4,14 @@ import { ScanProgress } from '../core/scanner';
 import pc from 'picocolors';
 import * as fs from 'fs';
 import * as path from 'path';
+import { version } from '../../package.json';
 
 const program = new Command();
 
 program
   .name('remediation')
   .description('CLI tool that scans React source code and detects design system inconsistencies')
-  .version('0.10.0');
+  .version(version);
 
 function createProgress(): ScanProgress {
   let startTime = Date.now();
