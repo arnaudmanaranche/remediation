@@ -25,11 +25,26 @@ npx remediation scan
 remediation scan [path]
 ```
 
+| Flag | Description |
+|------|-------------|
+| `--verbose` | Show all violations in terminal |
+| `--output <file>` | Write report to file |
+| `--rule <pattern>` | Filter by rule name (e.g., `colors`, `drift`) |
+| `--format json` | Output results as JSON (for CI/CD) |
+
 ### Tokens — Token rules only
 
 ```bash
 remediation tokens [path]
 ```
+
+Shorthand for `scan --rule colors/,spacing/,typography/,radius/,shadows/`. Runs only the hardcoded-value rules, skipping structural rules like `drift` and `token-bypass`.
+
+| Flag | Description |
+|------|-------------|
+| `--verbose` | Show all violations in terminal |
+| `--output <file>` | Write report to file |
+| `--format json` | Output results as JSON (for CI/CD) |
 
 ### Analyze — Design system analysis + codemod
 
@@ -44,19 +59,11 @@ remediation analyze [path]
 | `--output <file>` | Generate `tokens.ts` file |
 | `--min-confidence <level>` | Filter by confidence (`high`, `medium`, `low`) |
 
-## Scan Options
-
-| Flag | Description |
-|------|-------------|
-| `--dry-run` | Preview mode, no changes applied |
-| `--verbose` | Show all violations in terminal |
-| `--output <file>` | Write report to file |
-| `--rule <pattern>` | Filter by rule name (e.g., `colors`, `drift`) |
-| `--format json` | Output results as JSON (for CI/CD) |
-
 ## Rules
 
 ### Token Rules
+
+Detect hardcoded values that should be replaced with design tokens. Comments and import statements are excluded from analysis to avoid false positives.
 
 | Rule | Description |
 |------|-------------|
@@ -70,8 +77,8 @@ remediation analyze [path]
 
 | Rule | Description |
 |------|-------------|
-| `token-bypass` | Detects hardcoded values when a token already exists |
-| `drift` | Detects duplicate components that should be merged |
+| `token-bypass` | Detects hardcoded values when a matching token already exists — requires tokens to be configured |
+| `drift` | Detects components with similar names or identical JSX structure that should be merged |
 
 ## Pipeline
 
@@ -99,14 +106,22 @@ Violations by file:
   src/components/Button.tsx 3W
   src/components/ButtonPrimary.tsx 2W
 
-┌─ UI Health Score ──────────────────────┐
-│  ████████████████████████░░░░░░  82/100
-│  High risk
+┌─ Summary ─────────────────────────────┐
+│  ⚠  12 warnings  ████████░░░░░░░
+│  ─────────────────────────────────────
+│  12 total violations
+└────────────────────────────────────────┘
+
+┌─ Health Score ─────────────────────────┐
+│  ██████████████████░░░░░░░░░░░░  62/100
+│  Needs work
 │
-│  ██████████████████████████████░  95/100
+│  ████████████████████████░░░░░░  82/100
 │  Potential after fixes
 └────────────────────────────────────────┘
 ```
+
+Health score: **100 = clean codebase, 0 = critical**. Labels: Excellent / Good / Needs work / Poor / Critical.
 
 ### Analyze output
 
@@ -170,13 +185,16 @@ module.exports = {
     'drift': 'warning',
   },
 
-  // Custom token mappings (for token-bypass)
+  // Token mappings for the token-bypass rule
+  // Maps hardcoded values to their token name in your design system
   tokens: {
     '#1976D2': 'colors.primary',
     '#D32F2F': 'colors.danger',
   },
 };
 ```
+
+The `tokens` map is what powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement.
 
 ### Default Ignore Patterns
 
