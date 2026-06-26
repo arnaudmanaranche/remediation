@@ -205,20 +205,51 @@ function printTerminalCompact(result: any, basePath: string) {
     return;
   }
 
-  console.log(pc.bold('\nViolations by file:'));
+  // Group violations by rule
+  const byRule = new Map<string, { count: number; files: Set<string>; severity: string }>();
   for (const file of result.files) {
-    const relativePath = toRelativePath(file.path, basePath);
-    const errors = file.violations.filter((v: any) => v.severity === 'error').length;
-    const warnings = file.violations.filter((v: any) => v.severity === 'warning').length;
-    const infos = file.violations.filter((v: any) => v.severity === 'info').length;
-
-    let badge = '';
-    if (errors > 0) badge += pc.red(`${errors}E `);
-    if (warnings > 0) badge += pc.yellow(`${warnings}W `);
-    if (infos > 0) badge += pc.blue(`${infos}I`);
-
-    console.log(`  ${pc.dim(relativePath)} ${badge.trim()}`);
+    for (const v of file.violations) {
+      const entry = byRule.get(v.rule) ?? { count: 0, files: new Set(), severity: v.severity };
+      entry.count++;
+      entry.files.add(file.path);
+      // escalate severity: error > warning > info
+      if (v.severity === 'error') entry.severity = 'error';
+      else if (v.severity === 'warning' && entry.severity !== 'error') entry.severity = 'warning';
+      byRule.set(v.rule, entry);
+    }
   }
+
+  const sortedRules = [...byRule.entries()].sort((a, b) => b[1].count - a[1].count);
+  const maxCount = sortedRules[0][1].count;
+  const BAR_WIDTH = 16;
+
+  console.log(pc.bold('\nViolations by rule:'));
+  for (const [rule, { count, files, severity }] of sortedRules) {
+    const filled = Math.max(1, Math.round((count / maxCount) * BAR_WIDTH));
+    const empty = BAR_WIDTH - filled;
+    const colorFn = severity === 'error' ? pc.red : severity === 'warning' ? pc.yellow : pc.blue;
+    const bar = colorFn('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
+    const countStr = count.toString().padStart(4);
+    const fileStr = pc.dim(`${files.size} file${files.size > 1 ? 's' : ''}`);
+    console.log(`  ${pc.bold(rule.padEnd(28))} ${colorFn(countStr)}  ${bar}  ${fileStr}`);
+  }
+
+  // Top affected files (capped at 5)
+  const TOP_N = 5;
+  const sortedFiles = [...result.files].sort((a: any, b: any) => b.violations.length - a.violations.length);
+
+  console.log(pc.bold('\nTop affected files:'));
+  for (const file of sortedFiles.slice(0, TOP_N)) {
+    const relativePath = toRelativePath(file.path, basePath);
+    const count = file.violations.length;
+    const errors = file.violations.filter((v: any) => v.severity === 'error').length;
+    const colorFn = errors > 0 ? pc.red : pc.yellow;
+    console.log(`  ${colorFn(count.toString().padStart(3))}  ${pc.dim(relativePath)}`);
+  }
+  if (sortedFiles.length > TOP_N) {
+    console.log(`  ${pc.dim(`... and ${sortedFiles.length - TOP_N} more files`)}`);
+  }
+  console.log(pc.dim(`\n  Run with ${pc.bold('--verbose')} to see all violations, ${pc.bold('--rule <name>')} to filter by rule.`));
 
   printSummary(result);
   const { current, potential } = calculateHealthScore(result);
