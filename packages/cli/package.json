@@ -14,10 +14,7 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm run build",
-    "changeset:patch": "npm version patch --no-git-tag-version && pnpm run build && npm publish",
-    "changeset:minor": "npm version minor --no-git-tag-version && pnpm run build && npm publish",
-    "changeset:major": "npm version major --no-git-tag-version && pnpm run build && npm publish"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@babel/parser": "^8.0.0",
