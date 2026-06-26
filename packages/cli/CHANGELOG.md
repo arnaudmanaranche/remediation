@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.11.0...remediation-v0.12.0) (2026-06-26)
+
+
+### Features
+
+* group default output by rule with top affected files ([1744a08](https://github.com/arnaudmanaranche/remediation/commit/1744a08b511260c248d901cec43398df2af153bd))
+
+
+### Bug Fixes
+
+* replace scrolling file counter with single-line progress bar ([57180fa](https://github.com/arnaudmanaranche/remediation/commit/57180fa93aead22527ce0661b9f0538d541da5e7))
+
 ## [0.11.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.10.1...remediation-v0.11.0) (2026-06-26)
 
 
