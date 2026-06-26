@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.0...remediation-v0.12.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* show files affected count in verbose summary ([d7d1cc3](https://github.com/arnaudmanaranche/remediation/commit/d7d1cc3f7f54b00feed52e1e34c45b07352c4b63))
+
 ## [0.12.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.11.0...remediation-v0.12.0) (2026-06-26)
 
 
