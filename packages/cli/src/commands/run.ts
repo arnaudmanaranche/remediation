@@ -102,7 +102,6 @@ function handleOutput(result: any, options: { format?: string; verbose?: boolean
 program
   .command('scan')
   .description('Scan codebase for design system violations')
-  .option('--dry-run', 'Preview mode, do not apply fixes', false)
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
   .option('--output <file>', 'Write report to file')
@@ -119,10 +118,6 @@ program
     }
 
     handleOutput(result, options, scanPath);
-
-    if (options.dryRun && result.summary.total > 0) {
-      console.log(pc.dim('\nDRY RUN — no changes applied'));
-    }
   });
 
 program
