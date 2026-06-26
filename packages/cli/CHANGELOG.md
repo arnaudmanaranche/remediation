@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.1...remediation-v0.12.2) (2026-06-26)
+
+
+### Bug Fixes
+
+* remove defunct --dry-run flag from scan command ([1e558a4](https://github.com/arnaudmanaranche/remediation/commit/1e558a4608c6c0b7b2dc7a00fb87893a79fb6dac))
+
 ## [0.12.1](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.0...remediation-v0.12.1) (2026-06-26)
 
 
