@@ -128,20 +128,18 @@ program
 
 program
   .command('tokens')
-  .description('Check for token inconsistencies')
-  .option('--dry-run', 'Preview mode, do not apply fixes', false)
+  .description('Shorthand for: scan --rule colors/,spacing/,typography/,radius/,shadows/')
   .option('--format <format>', 'Output format (terminal, json)', 'terminal')
   .option('--verbose', 'Show all violations in terminal', false)
   .option('--output <file>', 'Write report to file')
-  .option('--rule <pattern>', 'Filter by rule name (e.g., colors, spacing)')
   .argument('[path]', 'Path to scan', '.')
   .action(async (scanPath, options) => {
     const tokenRules = allRules.filter(r =>
-      r.name.includes('colors/') ||
-      r.name.includes('spacing/') ||
-      r.name.includes('typography/') ||
-      r.name.includes('radius/') ||
-      r.name.includes('shadows/')
+      r.name.startsWith('colors/') ||
+      r.name.startsWith('spacing/') ||
+      r.name.startsWith('typography/') ||
+      r.name.startsWith('radius/') ||
+      r.name.startsWith('shadows/')
     );
 
     const progress = options.format === 'terminal' ? createProgress() : undefined;
@@ -154,10 +152,6 @@ program
     }
 
     handleOutput(result, options, scanPath);
-
-    if (options.dryRun && result.summary.total > 0) {
-      console.log(pc.dim('\nDRY RUN — no changes applied'));
-    }
   });
 
 function getSeverityIcon(severity: string): string {
