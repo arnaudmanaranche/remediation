@@ -200,8 +200,8 @@ function printTerminalVerbose(result: any, basePath: string) {
   }
 
   printSummary(result);
-  const { current, potential } = calculateLogRiskScore(result);
-  printRiskScore(current, potential);
+  const { current, potential } = calculateHealthScore(result);
+  printHealthScore(current, potential);
 }
 
 function printTerminalCompact(result: any, basePath: string) {
@@ -226,8 +226,8 @@ function printTerminalCompact(result: any, basePath: string) {
   }
 
   printSummary(result);
-  const { current, potential } = calculateLogRiskScore(result);
-  printRiskScore(current, potential);
+  const { current, potential } = calculateHealthScore(result);
+  printHealthScore(current, potential);
 }
 
 function printSummaryCompact(result: any) {
@@ -280,37 +280,34 @@ function getProgressBar(value: number, total: number, color: 'red' | 'yellow' | 
   return colorFn('█'.repeat(filled)) + pc.dim('░'.repeat(empty));
 }
 
-function calculateLogRiskScore(result: any): { current: number; potential: number } {
+function calculateHealthScore(result: any): { current: number; potential: number } {
   const { errors, warnings, infos } = result.summary;
 
-  const errorScore = errors * 10;
-  const warningScore = warnings * 2;
-  const infoScore = infos * 0.5;
+  const raw = (errors * 10) + (warnings * 2) + (infos * 0.5);
+  const risk = Math.min(Math.round(Math.log(raw + 1) * 15), 100);
+  const current = Math.max(0, 100 - risk);
 
-  const raw = errorScore + warningScore + infoScore;
-  const log = Math.log(raw + 1) * 15;
-  const current = Math.min(Math.round(log), 100);
+  // Potential assumes ~70% of violations are fixable
+  const fixableRaw = (errors * 10) + (warnings * 1.5) + (infos * 0.3);
+  const potentialRisk = Math.min(Math.round(Math.log(fixableRaw * 0.3 + 1) * 15), 100);
+  const potential = Math.max(current, Math.max(0, 100 - potentialRisk));
 
-  const fixableScore = (errors * 10) + (warnings * 1.5) + (infos * 0.3);
-  const potentialRaw = fixableScore * 0.3;
-  const potential = Math.min(Math.round(Math.log(potentialRaw + 1) * 15), 100);
-
-  return { current, potential: Math.max(current, potential) };
+  return { current, potential };
 }
 
-function printRiskScore(score: number, potentialScore?: number) {
+function printHealthScore(score: number, potentialScore?: number) {
   const width = 30;
   const filled = Math.round((score / 100) * width);
   const empty = width - filled;
 
   let color: 'green' | 'yellow' | 'red';
-  if (score < 30) color = 'green';
-  else if (score < 70) color = 'yellow';
+  if (score >= 70) color = 'green';
+  else if (score >= 40) color = 'yellow';
   else color = 'red';
 
-  console.log(pc.bold('\n┌─ UI Health Score ──────────────────────┐'));
+  console.log(pc.bold('\n┌─ Health Score ─────────────────────────┐'));
   console.log(`│  ${pc[color]('█'.repeat(filled))}${pc.dim('░'.repeat(empty))}  ${pc.bold(score.toString())}/100`);
-  console.log(`│  ${pc.dim(getRiskLabel(score))}`);
+  console.log(`│  ${pc.dim(getHealthLabel(score))}`);
 
   if (potentialScore !== undefined && potentialScore > score) {
     const potentialFilled = Math.round((potentialScore / 100) * width);
@@ -323,11 +320,12 @@ function printRiskScore(score: number, potentialScore?: number) {
   console.log(pc.bold('└────────────────────────────────────────┘'));
 }
 
-function getRiskLabel(score: number): string {
-  if (score < 30) return 'Low risk';
-  if (score < 70) return 'Medium risk';
-  if (score < 90) return 'High risk';
-  return 'Critical risk';
+function getHealthLabel(score: number): string {
+  if (score >= 90) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 40) return 'Needs work';
+  if (score >= 20) return 'Poor';
+  return 'Critical';
 }
 
 function generateReport(result: any, basePath: string): string {
@@ -374,16 +372,16 @@ function generateReport(result: any, basePath: string): string {
   lines.push(`  ${result.files.length} files affected`);
   lines.push('');
 
-  lines.push('UI HEALTH SCORE');
+  lines.push('HEALTH SCORE');
   lines.push('─'.repeat(60));
 
-  const { current, potential } = calculateLogRiskScore(result);
+  const { current, potential } = calculateHealthScore(result);
   const width = 40;
   const filled = Math.round((current / 100) * width);
   const empty = width - filled;
 
   lines.push(`  ${'█'.repeat(filled)}${'░'.repeat(empty)}  ${current}/100`);
-  lines.push(`  ${getRiskLabel(current)}`);
+  lines.push(`  ${getHealthLabel(current)}`);
 
   if (potential > current) {
     const potentialFilled = Math.round((potential / 100) * width);
