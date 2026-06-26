@@ -1,6 +1,7 @@
 {
   "name": "remediation-monorepo",
   "private": true,
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "pnpm --filter remediation run build",
     "test": "pnpm --filter remediation run test",
