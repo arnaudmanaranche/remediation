@@ -14,21 +14,19 @@ program
   .version(version);
 
 function createProgress(): ScanProgress {
-  let startTime = Date.now();
+  const BAR_WIDTH = 24;
 
   return {
-    onFile: (file: string, current: number, total: number) => {
-      if (current === 1) {
-        startTime = Date.now();
-        process.stdout.write(pc.cyan('⚡ Scanning...'));
-      }
-
-      if (current % 50 === 0 || current === total) {
-        process.stdout.write(pc.dim(` ${current}/${total}`));
-      }
+    onFile: (_file: string, current: number, total: number) => {
+      const pct = current / total;
+      const filled = Math.round(pct * BAR_WIDTH);
+      const bar = pc.cyan('█'.repeat(filled)) + pc.dim('░'.repeat(BAR_WIDTH - filled));
+      const counter = pc.dim(`${current}/${total}`);
+      process.stdout.write(`\r${pc.cyan('⚡')} ${bar}  ${counter}   `);
     },
     onProjectRule: (rule: string) => {
-      process.stdout.write(pc.dim(` [${rule}]`));
+      const blank = ' '.repeat(50);
+      process.stdout.write(`\r${pc.cyan('⚡')} ${pc.dim(`Running ${rule}...`)}${blank}`);
     },
   };
 }
