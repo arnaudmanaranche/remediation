@@ -1,9 +1,9 @@
 import { Rule, FileContent, Violation } from '../../../types';
-import { getStyleLines } from '../../lineFilter';
+import { extractStyleValues } from '../../../ast/extractor';
+import { detectViaAst, detectViaRegex } from '../../../ast/ruleHelpers';
 
-const RADIUS_PATTERNS = [
-  { pattern: /border-radius\s*:\s*(\d+(?:\.\d+)?)(px|rem|em)/g, type: 'css' },
-  { pattern: /borderRadius\s*:\s*['"]?(\d+(?:\.\d+)?)(px|rem|em)['"]?/g, type: 'js' },
+const PATTERNS = [
+  { regex: /(\d+(?:\.\d+)?)(px|rem|em)/, label: 'radius' },
 ];
 
 const RADIUS_TOKENS: Record<string, string> = {
@@ -16,58 +16,60 @@ const RADIUS_TOKENS: Record<string, string> = {
   '9999': 'radius.full',
 };
 
+function suggestToken(value: string, unit: string): string | null {
+  const px = unit === 'px' ? value : String(Math.round(parseFloat(value) * 16));
+  return RADIUS_TOKENS[px] ?? null;
+}
+
 export const radiusRule: Rule = {
   name: 'radius/hardcoded',
   description: 'Detects hardcoded border-radius values that should use design tokens',
 
   detect(file: FileContent): Violation[] {
-    const violations: Violation[] = [];
+    if (!file.path.match(/\.(tsx?|jsx?|css|scss)$/)) return [];
 
-    if (!file.path.match(/\.(tsx?|jsx?|css|scss)$/)) {
-      return violations;
-    }
+    const ast = extractStyleValues(file.content, file.path);
 
-    const lines = getStyleLines(file.content);
-
-    for (const { content: line, index } of lines) {
-      RADIUS_PATTERNS.forEach(({ pattern, type }) => {
-        const regex = new RegExp(pattern.source, pattern.flags);
-        let match;
-
-        while ((match = regex.exec(line)) !== null) {
-          const value = match[0];
-          const numericValue = match[1];
-          const unit = match[2];
-          const tokenSuggestion = suggestToken(numericValue, unit);
-
-          if (tokenSuggestion) {
-            violations.push({
-              rule: 'radius/hardcoded',
-              file: file.path,
-              line: index + 1,
-              column: match.index + 1,
-              message: `Hardcoded border-radius: ${value}`,
-              severity: 'warning',
-              suggestion: `Use ${tokenSuggestion} instead`,
-            });
-          }
-        }
+    if (ast !== null) {
+      return detectViaAst(file, ast, PATTERNS, 'radius/hardcoded', 'radius', (match, sv) => {
+        const suggestion = suggestToken(match[1], match[2]);
+        if (!suggestion) return null;
+        return {
+          rule: 'radius/hardcoded',
+          file: file.path,
+          line: sv.line,
+          column: sv.column,
+          message: `Hardcoded border-radius in \`${sv.cssProperty}\`: ${sv.rawValue}`,
+          severity: 'warning',
+          suggestion: `Use ${suggestion} instead`,
+        };
       });
     }
 
-    return violations;
+    // Fallback: match CSS property syntax in style lines
+    const CSS_PATTERNS = [
+      { regex: /border-radius\s*:\s*(\d+(?:\.\d+)?)(px|rem|em)/, label: 'css' },
+      { regex: /borderRadius\s*:\s*['"]?(\d+(?:\.\d+)?)(px|rem|em)['"]?/, label: 'js' },
+    ];
+
+    return detectViaRegex(
+      file,
+      CSS_PATTERNS,
+      'radius/hardcoded',
+      () => false,
+      (match, _line, lineIndex) => {
+        const suggestion = suggestToken(match[1], match[2]);
+        if (!suggestion) return null;
+        return {
+          rule: 'radius/hardcoded',
+          file: file.path,
+          line: lineIndex + 1,
+          column: match.index + 1,
+          message: `Hardcoded border-radius: ${match[0]}`,
+          severity: 'warning',
+          suggestion: `Use ${suggestion} instead`,
+        };
+      },
+    );
   },
 };
-
-function suggestToken(value: string, unit: string): string | null {
-  if (unit === 'px') {
-    return RADIUS_TOKENS[value] || null;
-  }
-
-  if (unit === 'rem' || unit === 'em') {
-    const pxValue = Math.round(parseFloat(value) * 16);
-    return RADIUS_TOKENS[pxValue.toString()] || null;
-  }
-
-  return null;
-}

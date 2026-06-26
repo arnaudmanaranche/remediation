@@ -1,19 +1,11 @@
 import { Rule, FileContent, Violation } from '../../../types';
-import { getStyleLines } from '../../lineFilter';
+import { extractStyleValues } from '../../../ast/extractor';
+import { detectViaAst, detectViaRegex } from '../../../ast/ruleHelpers';
 
-const SPACING_PATTERNS = [
-  { pattern: /(\d+)px/g, type: 'px' },
-  { pattern: /(\d+)rem/g, type: 'rem' },
-  { pattern: /(\d+)em/g, type: 'em' },
-];
-
-const TYPOGRAPHY_PROPERTIES = [
-  'font-size',
-  'fontSize',
-  'font-weight',
-  'fontWeight',
-  'line-height',
-  'lineHeight',
+const PATTERNS = [
+  { regex: /(\d+(?:\.\d+)?)px/, label: 'px' },
+  { regex: /(\d+(?:\.\d+)?)rem/, label: 'rem' },
+  { regex: /(\d+(?:\.\d+)?)em(?!u)/, label: 'em' }, // negative lookahead: avoid 'rem'
 ];
 
 const SPACING_TOKENS: Record<string, string> = {
@@ -27,59 +19,54 @@ const SPACING_TOKENS: Record<string, string> = {
   '32': 'spacing.xxxl',
 };
 
+function suggestToken(value: string, unit: string): string | null {
+  const px = unit === 'px' ? value : String(Math.round(parseFloat(value) * 16));
+  return SPACING_TOKENS[px] ?? null;
+}
+
 export const spacingRule: Rule = {
   name: 'spacing/hardcoded',
   description: 'Detects hardcoded spacing values that should use design tokens',
 
   detect(file: FileContent): Violation[] {
-    const violations: Violation[] = [];
-    const lines = getStyleLines(file.content);
+    const ast = extractStyleValues(file.content, file.path);
 
-    for (const { content: line, index } of lines) {
-      if (TYPOGRAPHY_PROPERTIES.some(prop => line.includes(prop))) continue;
-
-      SPACING_PATTERNS.forEach(({ pattern, type }) => {
-        const regex = new RegExp(pattern.source, pattern.flags);
-        let match;
-
-        while ((match = regex.exec(line)) !== null) {
-          const value = match[0];
-          const numericValue = match[1];
-          const tokenSuggestion = suggestToken(numericValue, type);
-
-          if (tokenSuggestion) {
-            violations.push({
-              rule: 'spacing/hardcoded',
-              file: file.path,
-              line: index + 1,
-              column: match.index + 1,
-              message: `Hardcoded ${type} spacing: ${value}`,
-              severity: 'warning',
-              suggestion: `Use ${tokenSuggestion} instead`,
-            });
-          }
-        }
+    if (ast !== null) {
+      return detectViaAst(file, ast, PATTERNS, 'spacing/hardcoded', 'spacing', (match, sv, label) => {
+        const numericValue = match[1];
+        const suggestion = suggestToken(numericValue, label);
+        return {
+          rule: 'spacing/hardcoded',
+          file: file.path,
+          line: sv.line,
+          column: sv.column,
+          message: `Hardcoded ${label} spacing in \`${sv.cssProperty}\`: ${sv.rawValue}`,
+          severity: 'warning',
+          suggestion: suggestion ? `Use ${suggestion} instead` : undefined,
+        };
       });
     }
 
-    return violations;
+    // Fallback: regex on style lines, skip typography lines
+    const TYPOGRAPHY_PROPS = ['font-size', 'fontSize', 'font-weight', 'fontWeight', 'line-height', 'lineHeight'];
+    return detectViaRegex(
+      file,
+      PATTERNS,
+      'spacing/hardcoded',
+      (line) => TYPOGRAPHY_PROPS.some(p => line.includes(p)),
+      (match, _line, lineIndex, label) => {
+        const suggestion = suggestToken(match[1], label);
+        if (!suggestion) return null;
+        return {
+          rule: 'spacing/hardcoded',
+          file: file.path,
+          line: lineIndex + 1,
+          column: match.index + 1,
+          message: `Hardcoded ${label} spacing: ${match[0]}`,
+          severity: 'warning',
+          suggestion: `Use ${suggestion} instead`,
+        };
+      },
+    );
   },
 };
-
-function suggestToken(value: string, type: string): string | null {
-  if (type === 'px') {
-    return SPACING_TOKENS[value] || null;
-  }
-
-  if (type === 'rem') {
-    const pxValue = Math.round(parseFloat(value) * 16);
-    return SPACING_TOKENS[pxValue.toString()] || null;
-  }
-
-  if (type === 'em') {
-    const pxValue = Math.round(parseFloat(value) * 16);
-    return SPACING_TOKENS[pxValue.toString()] || null;
-  }
-
-  return null;
-}

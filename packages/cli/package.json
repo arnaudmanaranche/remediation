@@ -20,11 +20,12 @@
     "changeset:major": "npm version major --no-git-tag-version && npm run build && npm publish"
   },
   "dependencies": {
+    "@babel/parser": "^8.0.0",
     "commander": "^12.0.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/node": "^25.9.3",
+    "@types/node": "^25.9.4",
     "typescript": "^5.0.0",
     "vitest": "^4.1.9"
   },

@@ -1,12 +1,14 @@
 import { Rule, FileContent, Violation } from '../../../types';
+import { extractStyleValues } from '../../../ast/extractor';
+import { detectViaAst, detectViaRegex } from '../../../ast/ruleHelpers';
 import { getStyleLines } from '../../lineFilter';
 
-const COLOR_PATTERNS = [
-  { pattern: /['"]#([0-9a-fA-F]{3,8})['"]/g, type: 'hex' },
-  { pattern: /rgb\(/g, type: 'rgb' },
-  { pattern: /rgba\(/g, type: 'rgba' },
-  { pattern: /hsl\(/g, type: 'hsl' },
-  { pattern: /hsla\(/g, type: 'hsla' },
+const PATTERNS = [
+  { regex: /['"]?(#[0-9a-fA-F]{3,8})['"]?/, label: 'hex' },
+  { regex: /rgb\(/, label: 'rgb' },
+  { regex: /rgba\(/, label: 'rgba' },
+  { regex: /hsl\(/, label: 'hsl' },
+  { regex: /hsla\(/, label: 'hsla' },
 ];
 
 export const colorsRule: Rule = {
@@ -14,30 +16,33 @@ export const colorsRule: Rule = {
   description: 'Detects hardcoded color values that should use design tokens',
 
   detect(file: FileContent): Violation[] {
-    const violations: Violation[] = [];
-    const lines = getStyleLines(file.content);
+    const ast = extractStyleValues(file.content, file.path);
 
-    for (const { content: line, index } of lines) {
-      COLOR_PATTERNS.forEach(({ pattern, type }) => {
-        const regex = new RegExp(pattern.source, pattern.flags);
-        let match;
-
-        while ((match = regex.exec(line)) !== null) {
-          const value = match[0];
-
-          violations.push({
-            rule: 'colors/hardcoded',
-            file: file.path,
-            line: index + 1,
-            column: match.index + 1,
-            message: `Hardcoded ${type} color: ${value}`,
-            severity: 'warning',
-          });
-        }
-      });
+    if (ast !== null) {
+      return detectViaAst(file, ast, PATTERNS, 'colors/hardcoded', 'color', (match, sv, label) => ({
+        rule: 'colors/hardcoded',
+        file: file.path,
+        line: sv.line,
+        column: sv.column,
+        message: `Hardcoded ${label} color in \`${sv.cssProperty}\`: ${sv.rawValue}`,
+        severity: 'warning',
+      }));
     }
 
-    return violations;
+    // Fallback for CSS/SCSS or unparseable files
+    return detectViaRegex(
+      file,
+      PATTERNS,
+      'colors/hardcoded',
+      () => false,
+      (match, _line, lineIndex, label) => ({
+        rule: 'colors/hardcoded',
+        file: file.path,
+        line: lineIndex + 1,
+        column: match.index + 1,
+        message: `Hardcoded ${label} color: ${match[0]}`,
+        severity: 'warning',
+      }),
+    );
   },
 };
-

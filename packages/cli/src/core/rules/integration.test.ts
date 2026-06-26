@@ -11,7 +11,17 @@ describe('bad-ds fixture — integration', () => {
     const colorViolations = result.files.flatMap(f =>
       f.violations.filter(v => v.rule === 'colors/hardcoded')
     );
-    expect(colorViolations.length).toBeGreaterThan(10);
+    // AST mode is precise: only flags values in CSS-property–keyed positions
+    expect(colorViolations.length).toBeGreaterThan(5);
+  });
+
+  it('does NOT flag colors in non-CSS object keys (Badge variant map)', async () => {
+    const result = await scanProject(FIXTURE, allRules);
+    const badgeViolations = result.files
+      .filter(f => f.path.includes('Badge.tsx'))
+      .flatMap(f => f.violations.filter(v => v.rule === 'colors/hardcoded'));
+    // Badge uses { bg: '#...', text: '#...' } keys — not CSS properties, so not flagged
+    expect(badgeViolations).toHaveLength(0);
   });
 
   it('detects hardcoded spacing', async () => {
