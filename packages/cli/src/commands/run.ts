@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { scanDirectory, scanProject, allRules } from '../core/index';
+import { scanProject, allRules } from '../core/index';
 import { ScanProgress } from '../core/scanner';
 import pc from 'picocolors';
 import * as fs from 'fs';
@@ -147,7 +147,7 @@ program
     const progress = options.format === 'terminal' ? createProgress() : undefined;
     const startTime = Date.now();
 
-    const result = scanDirectory(scanPath, tokenRules, undefined, progress);
+    const result = await scanProject(scanPath, tokenRules, undefined, progress);
 
     if (options.format === 'terminal') {
       printScanComplete(result.files.length, startTime);

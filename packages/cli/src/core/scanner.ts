@@ -72,41 +72,6 @@ export async function scanProject(
   };
 }
 
-export function scanDirectory(
-  dir: string,
-  rules: Rule[],
-  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx'],
-  progress?: ScanProgress
-): ScanResult {
-  const configDir = fs.statSync(dir).isFile() ? path.dirname(dir) : dir;
-  const config = loadConfig(configDir);
-  const activeRules = filterRulesByConfig(rules, config);
-  const files = fs.statSync(dir).isFile() ? [dir] : collectFiles(dir, extensions, config);
-  const fileViolations: FileViolation[] = [];
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    progress?.onFile?.(file, i + 1, files.length);
-
-    const content = fs.readFileSync(file, 'utf-8');
-    const fileContent: FileContent = { path: file, content };
-    const violations = runRules(fileContent, activeRules, config);
-
-    if (violations.length > 0) {
-      fileViolations.push({
-        path: file,
-        violations,
-        riskScore: calculateFileRiskScore(violations),
-      });
-    }
-  }
-
-  return {
-    files: fileViolations,
-    summary: calculateSummary(fileViolations),
-    riskScore: calculateOverallRiskScore(fileViolations),
-  };
-}
 
 function collectFiles(dir: string, extensions: string[], config: RemediationConfig = {}): string[] {
   const files: string[] = [];
