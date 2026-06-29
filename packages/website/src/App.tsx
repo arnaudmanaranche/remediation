@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Routes, Route, NavLink, Link } from 'react-router-dom'
 import { Terminal } from './components/Terminal'
+import { DocsPage } from './pages/DocsPage'
 import './App.css'
 
 const FAQ_ITEMS = [
@@ -34,53 +36,14 @@ const FAQ_ITEMS = [
 ]
 
 export default function App() {
-  const [copied, setCopied] = useState(false)
-
-  const copy = () => {
-    navigator.clipboard.writeText('npx remediation scan')
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
-  }
-
   return (
     <div className="page">
       <Nav />
-
-      <main>
-        <section className="hero">
-          <h1 className="h1">Your design tokens<br />aren't being used.</h1>
-          <p className="tagline">remediation scans your React codebase and tells you exactly where.</p>
-          <Terminal />
-          <div className="install">
-            <span className="install-prefix">$</span>
-            <code className="install-cmd" data-text="npx remediation scan">
-              npx remediation scan
-            </code>
-            <button className="copy" onClick={copy}>
-              {copied ? '✓' : 'Copy'}
-            </button>
-          </div>
-          <ul className="facts">
-            <li>6 rules — colors, spacing, typography, shadows, radius, drift</li>
-            <li>JSX · TSX · CSS · SCSS</li>
-            <li>Baseline mode for legacy codebases</li>
-            <li>Exit code 1 in CI on errors</li>
-          </ul>
-        </section>
-
-        <section className="faq-section">
-          <div className="faq-inner">
-            <h2 className="faq-title">Frequently asked questions</h2>
-            <div className="faq-list">
-              {FAQ_ITEMS.map((item, i) => (
-                <FaqItem key={i} q={item.q} a={item.a} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/docs/*" element={<DocsPage />} />
+      </Routes>
     </div>
   )
 }
@@ -89,9 +52,11 @@ function Nav() {
   return (
     <header className="nav">
       <div className="nav-inner">
-        <a className="nav-logo" href="/">⚡ remediation</a>
+        <Link className="nav-logo" to="/">⚡ remediation</Link>
         <nav className="nav-links">
-          <a href="https://github.com/arnaudmanaranche/remediation#readme" target="_blank" rel="noreferrer">Docs</a>
+          <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-link-active' : ''}>
+            Docs
+          </NavLink>
           <a href="https://npmjs.com/package/remediation" target="_blank" rel="noreferrer">npm</a>
           <a href="https://github.com/arnaudmanaranche/remediation" target="_blank" rel="noreferrer" className="nav-github">
             <GithubIcon />
@@ -100,6 +65,51 @@ function Nav() {
         </nav>
       </div>
     </header>
+  )
+}
+
+function HomePage() {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText('npx remediation scan')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  return (
+    <main>
+      <section className="hero">
+        <h1 className="h1">Your design tokens<br />aren't being used.</h1>
+        <p className="tagline">remediation scans your React codebase and tells you exactly where.</p>
+        <Terminal />
+        <div className="install">
+          <span className="install-prefix">$</span>
+          <code className="install-cmd" data-text="npx remediation scan">
+            npx remediation scan
+          </code>
+          <button className="copy" onClick={copy}>{copied ? '✓' : 'Copy'}</button>
+        </div>
+        <ul className="facts">
+          <li>6 rules — colors, spacing, typography, shadows, radius, drift</li>
+          <li>JSX · TSX · CSS · SCSS</li>
+          <li>Baseline mode for legacy codebases</li>
+          <li>Exit code 1 in CI on errors</li>
+        </ul>
+      </section>
+
+      <section className="faq-section">
+        <div className="faq-inner">
+          <h2 className="faq-title">Frequently asked questions</h2>
+          <div className="faq-list">
+            {FAQ_ITEMS.map((item, i) => (
+              <FaqItem key={i} q={item.q} a={item.a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </main>
   )
 }
 
@@ -140,10 +150,10 @@ function Footer() {
           </div>
           <div className="footer-col">
             <span className="footer-col-title">Docs</span>
-            <a href="https://github.com/arnaudmanaranche/remediation#commands" target="_blank" rel="noreferrer">Commands</a>
-            <a href="https://github.com/arnaudmanaranche/remediation#rules" target="_blank" rel="noreferrer">Rules</a>
-            <a href="https://github.com/arnaudmanaranche/remediation#configuration" target="_blank" rel="noreferrer">Configuration</a>
-            <a href="https://github.com/arnaudmanaranche/remediation#ci-usage" target="_blank" rel="noreferrer">CI usage</a>
+            <Link to="/docs#cmd-scan">Commands</Link>
+            <Link to="/docs#rule-colors">Rules</Link>
+            <Link to="/docs#config-file">Configuration</Link>
+            <Link to="/docs#ci-github">CI usage</Link>
           </div>
         </div>
       </div>

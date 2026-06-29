@@ -46,6 +46,7 @@
   transition: color 0.15s;
 }
 .nav-links a:hover { color: #ddd; }
+.nav-link-active { color: #ddd !important; }
 
 .nav-github {
   display: flex;
