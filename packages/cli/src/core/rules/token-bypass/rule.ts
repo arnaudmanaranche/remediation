@@ -132,8 +132,10 @@ export const tokenBypassRule: Rule = {
     }
 
     const jsxFiles = findJsxFiles(projectPath);
+    const tokenFilePaths = new Set(tokenFiles.map(f => path.resolve(f)));
+    const filesToScan = jsxFiles.filter(f => !tokenFilePaths.has(path.resolve(f)));
 
-    for (const file of jsxFiles) {
+    for (const file of filesToScan) {
       try {
         const content = fs.readFileSync(file, 'utf-8');
         const lines = content.split('\n');
