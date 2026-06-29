@@ -19,11 +19,21 @@ npx remediation scan
 
 ## Commands
 
+### Init — Generate config
+
+```bash
+remediation init
+```
+
+Interactive wizard that creates a `remediation.config.js` in the current directory. Prompts for ignore patterns, rule severity overrides, and token mappings.
+
 ### Scan — Detect violations
 
 ```bash
 remediation scan [path]
 ```
+
+Returns exit code `1` if any `error`-severity violations are found (use `rules` config to promote rules to `error`).
 
 | Flag | Description |
 |------|-------------|
@@ -31,6 +41,8 @@ remediation scan [path]
 | `--output <file>` | Write report to file |
 | `--rule <pattern>` | Filter by rule name (e.g., `colors`, `drift`) |
 | `--format json` | Output results as JSON (for CI/CD) |
+| `--save-baseline` | Save current violations as baseline (see Baseline) |
+| `--ignore-baseline` | Ignore baseline file even if it exists |
 
 ### Tokens — Token rules only
 
@@ -45,6 +57,8 @@ Shorthand for `scan --rule colors/,spacing/,typography/,radius/,shadows/`. Runs 
 | `--verbose` | Show all violations in terminal |
 | `--output <file>` | Write report to file |
 | `--format json` | Output results as JSON (for CI/CD) |
+| `--save-baseline` | Save current violations as baseline |
+| `--ignore-baseline` | Ignore baseline file even if it exists |
 
 ### Analyze — Design system analysis + codemod
 
@@ -214,17 +228,19 @@ Run with --codemod --no-dry-run to apply changes
 
 ## Configuration
 
-Create a `remediation.config.js` file in your project root:
+Run `remediation init` to generate the config interactively, or create `remediation.config.js` manually in your project root:
 
 ```js
 module.exports = {
   // Ignore files/patterns
   ignore: ['*.test.tsx', '*.stories.tsx'],
 
-  // Enable/disable rules
+  // Rule severity: 'error' | 'warning' | 'info' | 'off'
+  // 'error' violations cause exit code 1 (blocks CI)
   rules: {
-    'colors/hardcoded': 'off',
+    'colors/hardcoded': 'error',
     'drift': 'warning',
+    'token-bypass': 'off',
   },
 
   // Token mappings for the token-bypass rule
@@ -236,12 +252,38 @@ module.exports = {
 };
 ```
 
-The `tokens` map is what powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement.
+The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement.
 
 ### Default Ignore Patterns
 
 These directories are ignored by default:
 `node_modules`, `dist`, `build`, `.next`, `.nuxt`, `out`, `coverage`, `.cache`, `.parcel-cache`, `.webpack`, `.turbo`, `.vercel`, `.netlify`, `tmp`, `temp`
+
+## Baseline
+
+The baseline lets you adopt remediation on a large existing codebase without being blocked by legacy violations — only new violations are reported.
+
+```bash
+# Save current state (run once, commit the baseline file)
+remediation scan --save-baseline
+
+# Future scans only report violations introduced since the baseline
+remediation scan
+
+# Ignore baseline for a full audit
+remediation scan --ignore-baseline
+```
+
+The baseline is saved to `.remediation-baseline.json`. Commit it alongside your code so CI and teammates share the same starting point.
+
+## CI Usage
+
+```yaml
+- name: Scan design system
+  run: npx remediation scan --format json --output report.json
+```
+
+With `error`-severity rules configured, the command exits with code `1` on violations — blocking the pipeline. Use `--save-baseline` on first adoption to avoid failing on pre-existing violations.
 
 ## License
 
