@@ -1,52 +1,73 @@
 .page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 0 24px;
+  min-height: 100vh;
 }
 
-/* Header */
-.header {
-  width: 100%;
-  max-width: 760px;
+/* ── Nav ─────────────────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,10,10,0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.nav-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28px 0 0;
 }
 
-.logo {
-  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+.nav-logo {
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text);
+  color: #e8e8e8;
   letter-spacing: -0.01em;
 }
 
-.github-link {
-  font-size: 13px;
-  color: #999;
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 13.5px;
+  color: #888;
+}
+
+.nav-links a {
+  color: #888;
   transition: color 0.15s;
 }
-.github-link:hover { color: var(--text); }
+.nav-links a:hover { color: #ddd; }
 
-/* Main */
-.main {
-  flex: 1;
+.nav-github {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Hero ────────────────────────────────────────── */
+.hero {
+  max-width: 860px;
   width: 100%;
-  max-width: 760px;
+  margin: 0 auto;
+  padding: 52px 28px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56px 0 48px;
-  gap: 32px;
+  gap: 28px;
 }
 
 .tagline {
   font-size: 15px;
-  color: #aaa;
-  text-align: center;
+  color: #999;
   letter-spacing: -0.01em;
 }
 
@@ -65,25 +86,28 @@
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
   font-size: 14px;
   color: #4ade80;
+  flex-shrink: 0;
 }
 
 .install-cmd {
   font-size: 14px;
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  /* shimmer — defined in Terminal.css */
 }
 
 .copy {
   background: none;
-  border: 1px solid #444;
+  border: 1px solid #333;
   border-radius: 5px;
-  color: #999;
+  color: #888;
   font-size: 12px;
   padding: 3px 10px;
   cursor: pointer;
   transition: all 0.15s;
   font-family: inherit;
+  flex-shrink: 0;
 }
-.copy:hover { border-color: #666; color: var(--text); }
+.copy:hover { border-color: #555; color: #ddd; }
 
 /* Facts */
 .facts {
@@ -96,28 +120,165 @@
 
 .facts li {
   font-size: 13px;
-  color: #888;
-  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  color: #777;
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
 }
 
 .facts li::before {
   content: '— ';
-  color: #666;
+  color: #555;
 }
 
-/* Footer */
-.footer {
-  padding: 20px 0 24px;
+/* ── FAQ ─────────────────────────────────────────── */
+.faq-section {
+  border-top: 1px solid #1a1a1a;
+  padding: 80px 28px;
+}
+
+.faq-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.faq-title {
+  font-size: 13px;
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  color: #555;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.faq-item {
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.faq-q {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 22px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: #666;
-  font-family: 'SF Mono', monospace;
-}
-
-.footer a {
-  color: #888;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ccc;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
   transition: color 0.15s;
 }
-.footer a:hover { color: #ccc; }
+.faq-q:hover { color: #eee; }
+
+.faq-chevron {
+  flex-shrink: 0;
+  color: #555;
+  transition: transform 0.22s ease, color 0.15s;
+}
+
+.faq-open .faq-chevron {
+  transform: rotate(180deg);
+  color: #888;
+}
+
+.faq-a-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.faq-open .faq-a-wrap {
+  grid-template-rows: 1fr;
+}
+
+.faq-a {
+  overflow: hidden;
+  font-size: 14.5px;
+  color: #777;
+  line-height: 1.75;
+  padding-bottom: 0;
+  transition: padding-bottom 0.25s ease;
+}
+
+.faq-open .faq-a {
+  padding-bottom: 22px;
+}
+
+/* ── Footer ──────────────────────────────────────── */
+.footer {
+  border-top: 1px solid #1a1a1a;
+  padding: 60px 28px 48px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column; gap: 40px; }
+}
+
+.footer-brand {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-logo {
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.footer-tagline {
+  font-size: 13px;
+  color: #555;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: #3a3a3a;
+  margin-top: 4px;
+}
+
+.footer-cols {
+  display: flex;
+  gap: 60px;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-col-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #444;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.footer-col a {
+  font-size: 13.5px;
+  color: #666;
+  transition: color 0.15s;
+}
+.footer-col a:hover { color: #bbb; }
