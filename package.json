@@ -6,5 +6,8 @@
     "build": "pnpm --filter './packages/cli' run build",
     "test": "pnpm --filter './packages/cli' run test",
     "knip": "knip"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }
