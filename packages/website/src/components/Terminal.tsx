@@ -1,93 +1,123 @@
 import { useEffect, useRef, useState } from 'react'
 import './Terminal.css'
 
-type LineType = 'command' | 'progress' | 'rule' | 'file' | 'summary' | 'score' | 'blank' | 'header' | 'muted'
+// All content is rendered at once; CSS animation-delay staggers the reveal.
+// This means no React re-renders driving the animation — pure GPU CSS.
 
-interface TerminalLine {
-  text: string
-  type: LineType
-  delay: number
-  replacesPrev?: boolean  // true = overwrite the previous line in place
+interface Line {
+  el: React.ReactNode
+  delay: number  // seconds
 }
 
-const STEPS: TerminalLine[] = [
-  { text: 'npx remediation scan ./src', type: 'command', delay: 400 },
-  { text: '', type: 'blank', delay: 200 },
-  { text: '⚡ ░░░░░░░░░░░░░░░░░░░░░░░░  0/2423', type: 'progress', delay: 100 },
-  { text: '⚡ ████░░░░░░░░░░░░░░░░░░░░  605/2423', type: 'progress', delay: 500, replacesPrev: true },
-  { text: '⚡ ████████░░░░░░░░░░░░░░░░  1211/2423', type: 'progress', delay: 500, replacesPrev: true },
-  { text: '⚡ ████████████░░░░░░░░░░░░  1817/2423', type: 'progress', delay: 500, replacesPrev: true },
-  { text: '⚡ ████████████████████████  2423/2423', type: 'progress', delay: 500, replacesPrev: true },
-  { text: '⚡ Scanned 2423 files in 3.4s', type: 'header', delay: 300, replacesPrev: true },
-  { text: '', type: 'blank', delay: 100 },
-  { text: 'Violations by rule:', type: 'header', delay: 200 },
-  { text: '  spacing/hardcoded         3788  ████████████████  721 files', type: 'rule', delay: 150 },
-  { text: '  typography/hardcoded      1640  ██████░░░░░░░░░░  408 files', type: 'rule', delay: 150 },
-  { text: '  drift                      523  ██░░░░░░░░░░░░░░  134 files', type: 'rule', delay: 150 },
-  { text: '  shadows/hardcoded          226  █░░░░░░░░░░░░░░░   89 files', type: 'rule', delay: 150 },
-  { text: '  colors/hardcoded           204  █░░░░░░░░░░░░░░░   67 files', type: 'rule', delay: 150 },
-  { text: '  radius/hardcoded           169  █░░░░░░░░░░░░░░░   54 files', type: 'rule', delay: 150 },
-  { text: '', type: 'blank', delay: 100 },
-  { text: 'Top affected files:', type: 'header', delay: 200 },
-  { text: '   47  src/components/Button.tsx', type: 'file', delay: 80 },
-  { text: '   31  src/pages/Dashboard.tsx', type: 'file', delay: 80 },
-  { text: '   28  src/components/Card.tsx', type: 'file', delay: 80 },
-  { text: '   21  src/components/Badge.tsx', type: 'file', delay: 80 },
-  { text: '   18  src/components/Text.tsx', type: 'file', delay: 80 },
-  { text: '  ... and 2348 more files', type: 'muted', delay: 100 },
-  { text: '', type: 'blank', delay: 150 },
-  { text: '┌─ Summary ──────────────────────────────────┐', type: 'summary', delay: 100 },
-  { text: '│  ✖  5238 errors    ████████████████        │', type: 'summary', delay: 80 },
-  { text: '│  ⚠  1312 warnings  ████████░░░░░░░░        │', type: 'summary', delay: 80 },
-  { text: '│  ──────────────────────────────────────    │', type: 'summary', delay: 50 },
-  { text: '│  6550 total violations                     │', type: 'summary', delay: 80 },
-  { text: '│  2353 files affected                       │', type: 'summary', delay: 80 },
-  { text: '└────────────────────────────────────────────┘', type: 'summary', delay: 100 },
-  { text: '', type: 'blank', delay: 100 },
-  { text: '┌─ Health Score ──────────────────────────────┐', type: 'score', delay: 100 },
-  { text: '│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  0/100  │', type: 'score', delay: 80 },
-  { text: '│  Critical                                   │', type: 'score', delay: 80 },
-  { text: '└────────────────────────────────────────────┘', type: 'score', delay: 100 },
-]
+function buildLines(): Line[] {
+  let t = 0.5  // start offset in seconds
+  const lines: Line[] = []
+
+  const push = (el: React.ReactNode, gap = 0.14) => {
+    lines.push({ el, delay: t })
+    t += gap
+  }
+  const blank = (gap = 0.08) => {
+    lines.push({ el: null, delay: t })
+    t += gap
+  }
+
+  push(
+    <span>
+      <span className="t-prompt">$ </span>
+      <span className="t-cmd">npx remediation scan ./src</span>
+    </span>,
+    0.18
+  )
+  blank(0.12)
+
+  // Progress bar — CSS-animated fill
+  push(
+    <ProgressLine />,
+    0.05
+  )
+  blank(0.1)
+
+  push(<span className="t-dim">Violations by rule:</span>, 0.14)
+  push(<RuleLine name="spacing/hardcoded"    count={3788} bar={16} empty={0}  files={721} />, 0.13)
+  push(<RuleLine name="typography/hardcoded" count={1640} bar={7}  empty={9}  files={408} />, 0.13)
+  push(<RuleLine name="drift"                count={523}  bar={2}  empty={14} files={134} />, 0.13)
+  push(<RuleLine name="shadows/hardcoded"    count={226}  bar={1}  empty={15} files={89}  />, 0.13)
+  push(<RuleLine name="colors/hardcoded"     count={204}  bar={1}  empty={15} files={67}  />, 0.13)
+  push(<RuleLine name="radius/hardcoded"     count={169}  bar={1}  empty={15} files={54}  />, 0.13)
+  blank(0.12)
+
+  push(<span className="t-dim">Top affected files:</span>, 0.14)
+  push(<FileLine n={47} f="src/components/Button.tsx" />, 0.08)
+  push(<FileLine n={31} f="src/pages/Dashboard.tsx"  />, 0.08)
+  push(<FileLine n={28} f="src/components/Card.tsx"  />, 0.08)
+  push(<FileLine n={21} f="src/components/Badge.tsx" />, 0.08)
+  push(<FileLine n={18} f="src/components/Text.tsx"  />, 0.08)
+  push(<span className="t-muted">  ... and 2348 more files</span>, 0.14)
+  blank(0.12)
+
+  push(<span className="t-border">┌─ Summary ──────────────────────────────────┐</span>, 0.08)
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-error">✖  5238 errors</span>
+      <span className="t-border">    </span>
+      <span className="t-bar">████████████████</span>
+      <span className="t-border">        │</span>
+    </span>, 0.07
+  )
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-warning">⚠  1312 warnings</span>
+      <span className="t-border">  </span>
+      <span className="t-bar">████████</span>
+      <span className="t-empty">░░░░░░░░</span>
+      <span className="t-border">        │</span>
+    </span>, 0.07
+  )
+  push(<span className="t-border">│  ──────────────────────────────────────    │</span>, 0.05)
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-dim">6550 total violations</span>
+      <span className="t-border">                     │</span>
+    </span>, 0.07
+  )
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-dim">2353 files affected</span>
+      <span className="t-border">                       │</span>
+    </span>, 0.07
+  )
+  push(<span className="t-border">└────────────────────────────────────────────┘</span>, 0.12)
+  blank(0.1)
+
+  push(<span className="t-border">┌─ Health Score ─────────────────────────────┐</span>, 0.08)
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-empty">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>
+      <span className="t-border">  </span>
+      <span className="t-num">0/100</span>
+      <span className="t-border">  │</span>
+    </span>, 0.07
+  )
+  push(
+    <span>
+      <span className="t-border">│  </span>
+      <span className="t-error">Critical</span>
+      <span className="t-border">                                   │</span>
+    </span>, 0.07
+  )
+  push(<span className="t-border">└────────────────────────────────────────────┘</span>, 0)
+
+  return lines
+}
 
 export function Terminal() {
-  const [lines, setLines] = useState<TerminalLine[]>([])
-  const [cursor, setCursor] = useState(true)
-  const bodyRef = useRef<HTMLDivElement>(null)
-
-  // Animate on mount
-  useEffect(() => {
-    let cancelled = false
-    let i = 0
-
-    const tick = () => {
-      if (cancelled || i >= STEPS.length) return
-      const step = STEPS[i++]
-      setLines(prev => {
-        if (step.replacesPrev && prev.length > 0) {
-          return [...prev.slice(0, -1), step]
-        }
-        return [...prev, step]
-      })
-      setTimeout(tick, step.delay)
-    }
-
-    const t = setTimeout(tick, 600)
-    return () => { cancelled = true; clearTimeout(t) }
-  }, [])
-
-  // Blink
-  useEffect(() => {
-    const t = setInterval(() => setCursor(c => !c), 530)
-    return () => clearInterval(t)
-  }, [])
-
-  // Auto-scroll
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
-  }, [lines])
-
-  const done = lines.length >= STEPS.length
+  const LINES = useRef(buildLines()).current
 
   return (
     <div className="terminal-wrapper">
@@ -97,61 +127,95 @@ export function Terminal() {
           <span className="dot dot-yellow" />
           <span className="dot dot-green" />
         </div>
-        <span className="terminal-title">zsh</span>
+        <div className="terminal-tabs">
+          <span className="terminal-tab">zsh</span>
+        </div>
       </div>
-      <div className="terminal-body" ref={bodyRef}>
-        {lines.length === 0 && (
-          <div className="terminal-line terminal-command">
-            <span className="prompt">$ </span>
-            <span className={cursor ? 'cursor-on' : 'cursor-off'}>▋</span>
-          </div>
+      <div className="terminal-body">
+        {LINES.map((line, i) =>
+          line.el === null
+            ? <span key={i} className="t-blank" style={{ animationDelay: `${line.delay}s` }} />
+            : (
+              <span key={i} className="t-line" style={{ animationDelay: `${line.delay}s` }}>
+                {line.el}
+              </span>
+            )
         )}
-        {lines.map((line, i) => {
-          const isLast = i === lines.length - 1
-          if (line.type === 'blank') return <div key={i} className="terminal-line" />
-          return (
-            <div key={i} className={`terminal-line terminal-${line.type}`}>
-              {line.type === 'command' && <span className="prompt">$ </span>}
-              <span dangerouslySetInnerHTML={{ __html: colorize(line.text, line.type) }} />
-              {isLast && !done && <span className={cursor ? 'cursor-on' : 'cursor-off'}>▋</span>}
-            </div>
-          )
-        })}
+        <Cursor delay={LINES[LINES.length - 1].delay + 0.15} />
       </div>
     </div>
   )
 }
 
-function colorize(text: string, type: LineType): string {
-  if (type === 'progress') {
-    return text
-      .replace(/(█+)(░*)/, '<span class="tc-bar">$1</span><span class="tc-empty">$2</span>')
-      .replace(/(\d+\/\d+)/, '<span class="tc-num">$1</span>')
-  }
-  if (type === 'rule') {
-    return text
-      .replace(/(spacing\/hardcoded|typography\/hardcoded|drift|shadows\/hardcoded|colors\/hardcoded|radius\/hardcoded)/, '<span class="tc-rule">$1</span>')
-      .replace(/(\d+)\s+(█+)(░*)/, '<span class="tc-num">$1</span>  <span class="tc-bar">$2</span><span class="tc-empty">$3</span>')
-  }
-  if (type === 'summary') {
-    return text
-      .replace(/✖/, '<span class="tc-error">✖</span>')
-      .replace(/⚠/, '<span class="tc-warning">⚠</span>')
-      .replace(/(\d+ errors)/, '<span class="tc-error">$1</span>')
-      .replace(/(\d+ warnings)/, '<span class="tc-warning">$1</span>')
-      .replace(/(█+)(░*)/, '<span class="tc-bar">$1</span><span class="tc-empty">$2</span>')
-  }
-  if (type === 'score') {
-    return text
-      .replace(/(░+)/, '<span class="tc-empty">$1</span>')
-      .replace(/Critical/, '<span class="tc-error">Critical</span>')
-      .replace(/(\d+\/100)/, '<span class="tc-num">$1</span>')
-  }
-  if (type === 'file') {
-    return text.replace(/(\d+)\s+(.+)/, '<span class="tc-num">$1</span>  <span class="tc-file">$2</span>')
-  }
-  if (type === 'header') {
-    return `<span class="tc-header">${text}</span>`
-  }
-  return text
+function Cursor({ delay }: { delay: number }) {
+  return (
+    <span
+      className="t-line"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <span className="t-prompt">$ </span>
+      <span className="t-cursor" />
+    </span>
+  )
+}
+
+function ProgressLine() {
+  const [count, setCount] = useState(0)
+  const target = 2423
+  const startRef = useRef<number | null>(null)
+  const duration = 2200
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const raf = (ts: number) => {
+        if (startRef.current === null) startRef.current = ts
+        const progress = Math.min((ts - startRef.current) / duration, 1)
+        setCount(Math.floor(progress * target))
+        if (progress < 1) requestAnimationFrame(raf)
+        else setCount(target)
+      }
+      requestAnimationFrame(raf)
+    }, 700)
+    return () => clearTimeout(t)
+  }, [])
+
+  const filled = Math.round((count / target) * 24)
+  const empty  = 24 - filled
+
+  return (
+    <span>
+      <span className="t-dim">⚡ </span>
+      <span className="t-bar">{'█'.repeat(filled)}</span>
+      <span className="t-empty">{'░'.repeat(empty)}</span>
+      <span className="t-dim">  {count.toLocaleString()}/{target.toLocaleString()}</span>
+    </span>
+  )
+}
+
+function RuleLine({ name, count, bar, empty, files }: {
+  name: string; count: number; bar: number; empty: number; files: number
+}) {
+  return (
+    <span>
+      {'  '}
+      <span className="t-rule">{name.padEnd(26)}</span>
+      <span className="t-num">{String(count).padStart(4)}</span>
+      {'  '}
+      <span className="t-bar">{'█'.repeat(bar)}</span>
+      <span className="t-empty">{'░'.repeat(empty)}</span>
+      {'  '}
+      <span className="t-dim">{String(files).padStart(3)} files</span>
+    </span>
+  )
+}
+
+function FileLine({ n, f }: { n: number; f: string }) {
+  return (
+    <span>
+      {'  '}
+      <span className="t-num">{String(n).padStart(4)}</span>
+      {'  '}
+      <span className="t-file">{f}</span>
+    </span>
+  )
 }

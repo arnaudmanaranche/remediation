@@ -54,17 +54,22 @@
 .install {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: #111;
-  border: 1px solid #222;
+  border: 1px solid #252525;
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 10px 18px;
 }
 
-.install code {
+.install-prefix {
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
   font-size: 14px;
-  color: var(--green);
-  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  color: #4ade80;
+}
+
+.install-cmd {
+  font-size: 14px;
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
 }
 
 .copy {

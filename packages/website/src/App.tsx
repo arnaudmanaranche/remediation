@@ -31,9 +31,12 @@ export default function App() {
         <Terminal />
 
         <div className="install">
-          <code>npx remediation scan</code>
+          <span className="install-prefix">$</span>
+          <code className="install-cmd" data-text="npx remediation scan">
+            npx remediation scan
+          </code>
           <button className="copy" onClick={copy}>
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? '✓' : 'Copy'}
           </button>
         </div>
 
