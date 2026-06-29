@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import './Terminal.css'
 
+type LineType = 'command' | 'progress' | 'rule' | 'file' | 'summary' | 'score' | 'blank' | 'header' | 'muted'
+
 interface TerminalLine {
   text: string
-  type: 'command' | 'progress' | 'rule' | 'file' | 'summary' | 'score' | 'blank' | 'header'
+  type: LineType
   delay: number
+  replacesPrev?: boolean  // true = overwrite the previous line in place
 }
 
-const LINES: TerminalLine[] = [
-  { text: '$ npx remediation scan ./src', type: 'command', delay: 400 },
+const STEPS: TerminalLine[] = [
+  { text: 'npx remediation scan ./src', type: 'command', delay: 400 },
   { text: '', type: 'blank', delay: 200 },
   { text: '⚡ ░░░░░░░░░░░░░░░░░░░░░░░░  0/2423', type: 'progress', delay: 100 },
-  { text: '⚡ ████░░░░░░░░░░░░░░░░░░░░  605/2423', type: 'progress', delay: 500 },
-  { text: '⚡ ████████░░░░░░░░░░░░░░░░  1211/2423', type: 'progress', delay: 500 },
-  { text: '⚡ ████████████░░░░░░░░░░░░  1817/2423', type: 'progress', delay: 500 },
-  { text: '⚡ ████████████████████████  2423/2423', type: 'progress', delay: 500 },
-  { text: '⚡ Scanned 2423 files in 3.4s', type: 'header', delay: 300 },
+  { text: '⚡ ████░░░░░░░░░░░░░░░░░░░░  605/2423', type: 'progress', delay: 500, replacesPrev: true },
+  { text: '⚡ ████████░░░░░░░░░░░░░░░░  1211/2423', type: 'progress', delay: 500, replacesPrev: true },
+  { text: '⚡ ████████████░░░░░░░░░░░░  1817/2423', type: 'progress', delay: 500, replacesPrev: true },
+  { text: '⚡ ████████████████████████  2423/2423', type: 'progress', delay: 500, replacesPrev: true },
+  { text: '⚡ Scanned 2423 files in 3.4s', type: 'header', delay: 300, replacesPrev: true },
   { text: '', type: 'blank', delay: 100 },
   { text: 'Violations by rule:', type: 'header', delay: 200 },
   { text: '  spacing/hardcoded         3788  ████████████████  721 files', type: 'rule', delay: 150 },
@@ -31,7 +34,7 @@ const LINES: TerminalLine[] = [
   { text: '   28  src/components/Card.tsx', type: 'file', delay: 80 },
   { text: '   21  src/components/Badge.tsx', type: 'file', delay: 80 },
   { text: '   18  src/components/Text.tsx', type: 'file', delay: 80 },
-  { text: '  ... and 2348 more files', type: 'muted' as TerminalLine['type'], delay: 100 },
+  { text: '  ... and 2348 more files', type: 'muted', delay: 100 },
   { text: '', type: 'blank', delay: 150 },
   { text: '┌─ Summary ──────────────────────────────────┐', type: 'summary', delay: 100 },
   { text: '│  ✖  5238 errors    ████████████████        │', type: 'summary', delay: 80 },
@@ -48,58 +51,46 @@ const LINES: TerminalLine[] = [
 ]
 
 export function Terminal() {
-  const [visibleLines, setVisibleLines] = useState<TerminalLine[]>([])
+  const [lines, setLines] = useState<TerminalLine[]>([])
   const [cursor, setCursor] = useState(true)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [started, setStarted] = useState(false)
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const elementRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
+  // Animate on mount
   useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started) {
-          setStarted(true)
-        }
-      },
-      { threshold: 0.3 }
-    )
-    if (elementRef.current) {
-      observerRef.current.observe(elementRef.current)
-    }
-    return () => observerRef.current?.disconnect()
-  }, [started])
-
-  useEffect(() => {
-    if (!started) return
-
     let cancelled = false
-    let index = 0
+    let i = 0
 
-    const next = () => {
-      if (cancelled || index >= LINES.length) return
-      const line = LINES[index++]
-      setVisibleLines(prev => [...prev, line])
-      setTimeout(next, line.delay)
+    const tick = () => {
+      if (cancelled || i >= STEPS.length) return
+      const step = STEPS[i++]
+      setLines(prev => {
+        if (step.replacesPrev && prev.length > 0) {
+          return [...prev.slice(0, -1), step]
+        }
+        return [...prev, step]
+      })
+      setTimeout(tick, step.delay)
     }
 
-    setTimeout(next, 300)
-    return () => { cancelled = true }
-  }, [started])
-
-  useEffect(() => {
-    const interval = setInterval(() => setCursor(c => !c), 530)
-    return () => clearInterval(interval)
+    const t = setTimeout(tick, 600)
+    return () => { cancelled = true; clearTimeout(t) }
   }, [])
 
+  // Blink
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
-    }
-  }, [visibleLines])
+    const t = setInterval(() => setCursor(c => !c), 530)
+    return () => clearInterval(t)
+  }, [])
+
+  // Auto-scroll
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+  }, [lines])
+
+  const done = lines.length >= STEPS.length
 
   return (
-    <div className="terminal-wrapper" ref={elementRef}>
+    <div className="terminal-wrapper">
       <div className="terminal-chrome">
         <div className="terminal-dots">
           <span className="dot dot-red" />
@@ -108,52 +99,35 @@ export function Terminal() {
         </div>
         <span className="terminal-title">zsh</span>
       </div>
-      <div className="terminal-body" ref={containerRef}>
-        {visibleLines.map((line, i) => (
-          <TerminalRow
-            key={i}
-            line={line}
-            isLast={i === visibleLines.length - 1}
-            cursor={cursor}
-            done={visibleLines.length >= LINES.length}
-          />
-        ))}
-        {visibleLines.length === 0 && (
-          <span className="terminal-line terminal-command">
+      <div className="terminal-body" ref={bodyRef}>
+        {lines.length === 0 && (
+          <div className="terminal-line terminal-command">
             <span className="prompt">$ </span>
             <span className={cursor ? 'cursor-on' : 'cursor-off'}>▋</span>
-          </span>
+          </div>
         )}
+        {lines.map((line, i) => {
+          const isLast = i === lines.length - 1
+          if (line.type === 'blank') return <div key={i} className="terminal-line" />
+          return (
+            <div key={i} className={`terminal-line terminal-${line.type}`}>
+              {line.type === 'command' && <span className="prompt">$ </span>}
+              <span dangerouslySetInnerHTML={{ __html: colorize(line.text, line.type) }} />
+              {isLast && !done && <span className={cursor ? 'cursor-on' : 'cursor-off'}>▋</span>}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function TerminalRow({
-  line,
-  isLast,
-  cursor,
-  done,
-}: {
-  line: TerminalLine
-  isLast: boolean
-  cursor: boolean
-  done: boolean
-}) {
-  const showCursor = isLast && !done
-
-  if (line.type === 'blank') return <div className="terminal-line" />
-
-  return (
-    <div className={`terminal-line terminal-${line.type}`}>
-      {line.type === 'command' && <span className="prompt">$ </span>}
-      <span dangerouslySetInnerHTML={{ __html: colorize(line.text, line.type) }} />
-      {showCursor && <span className={cursor ? 'cursor-on' : 'cursor-off'}>▋</span>}
-    </div>
-  )
-}
-
-function colorize(text: string, type: TerminalLine['type']): string {
+function colorize(text: string, type: LineType): string {
+  if (type === 'progress') {
+    return text
+      .replace(/(█+)(░*)/, '<span class="tc-bar">$1</span><span class="tc-empty">$2</span>')
+      .replace(/(\d+\/\d+)/, '<span class="tc-num">$1</span>')
+  }
   if (type === 'rule') {
     return text
       .replace(/(spacing\/hardcoded|typography\/hardcoded|drift|shadows\/hardcoded|colors\/hardcoded|radius\/hardcoded)/, '<span class="tc-rule">$1</span>')
@@ -163,9 +137,9 @@ function colorize(text: string, type: TerminalLine['type']): string {
     return text
       .replace(/✖/, '<span class="tc-error">✖</span>')
       .replace(/⚠/, '<span class="tc-warning">⚠</span>')
-      .replace(/(\d+) errors/, '<span class="tc-error">$1 errors</span>')
-      .replace(/(\d+) warnings/, '<span class="tc-warning">$1 warnings</span>')
-      .replace(/(████+)/, '<span class="tc-bar">$1</span>')
+      .replace(/(\d+ errors)/, '<span class="tc-error">$1</span>')
+      .replace(/(\d+ warnings)/, '<span class="tc-warning">$1</span>')
+      .replace(/(█+)(░*)/, '<span class="tc-bar">$1</span><span class="tc-empty">$2</span>')
   }
   if (type === 'score') {
     return text
