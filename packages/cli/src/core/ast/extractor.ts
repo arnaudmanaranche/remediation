@@ -1,5 +1,6 @@
 import * as parser from '@babel/parser';
 import { ALL_STYLE_PROPS } from './cssProperties';
+import { extractCssStyleValues } from './cssExtractor';
 
 export interface StyleValue {
   cssProperty: string;
@@ -109,6 +110,9 @@ function extractFromTemplateLiteral(node: AstNode): StyleValue[] {
  * Falls back to an empty array on parse error (caller can then use regex).
  */
 export function extractStyleValues(content: string, filePath: string): StyleValue[] | null {
+  if (/\.(css|scss)$/.test(filePath)) {
+    return extractCssStyleValues(content, filePath);
+  }
   if (!/\.(tsx?|jsx?)$/.test(filePath)) return null;
 
   let ast: AstNode;

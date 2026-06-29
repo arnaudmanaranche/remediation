@@ -75,9 +75,11 @@ const el = (
     expect(result[0].line).toBe(5);
   });
 
-  it('returns null for CSS files', () => {
+  it('parses CSS files via postcss (returns StyleValue[], not null)', () => {
     const result = extractStyleValues('color: red;', 'style.css');
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result![0].cssProperty).toBe('color');
+    expect(result![0].rawValue).toBe('red');
   });
 
   it('returns empty array for files with no style values', () => {
