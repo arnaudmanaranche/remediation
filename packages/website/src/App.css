@@ -26,7 +26,7 @@
 
 .github-link {
   font-size: 13px;
-  color: var(--muted);
+  color: #999;
   transition: color 0.15s;
 }
 .github-link:hover { color: var(--text); }
@@ -45,7 +45,7 @@
 
 .tagline {
   font-size: 15px;
-  color: var(--muted);
+  color: #aaa;
   text-align: center;
   letter-spacing: -0.01em;
 }
@@ -69,16 +69,16 @@
 
 .copy {
   background: none;
-  border: 1px solid #333;
+  border: 1px solid #444;
   border-radius: 5px;
-  color: var(--muted);
+  color: #999;
   font-size: 12px;
   padding: 3px 10px;
   cursor: pointer;
   transition: all 0.15s;
   font-family: inherit;
 }
-.copy:hover { border-color: #555; color: var(--text); }
+.copy:hover { border-color: #666; color: var(--text); }
 
 /* Facts */
 .facts {
@@ -91,13 +91,13 @@
 
 .facts li {
   font-size: 13px;
-  color: #444;
+  color: #888;
   font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
 }
 
 .facts li::before {
   content: '— ';
-  color: #333;
+  color: #666;
 }
 
 /* Footer */
@@ -107,12 +107,12 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: #333;
+  color: #666;
   font-family: 'SF Mono', monospace;
 }
 
 .footer a {
-  color: #444;
+  color: #888;
   transition: color 0.15s;
 }
-.footer a:hover { color: var(--muted); }
+.footer a:hover { color: #ccc; }

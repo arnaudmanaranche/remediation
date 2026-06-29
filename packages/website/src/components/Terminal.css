@@ -65,13 +65,13 @@
 .terminal-file { color: #9ca3af; }
 .terminal-summary { color: #d1d5db; }
 .terminal-score { color: #d1d5db; }
-.terminal-muted { color: #555; }
+.terminal-muted { color: #777; }
 
 .prompt { color: #4ade80; }
 
 .tc-rule { color: #60a5fa; }
 .tc-bar { color: #4ade80; }
-.tc-empty { color: #333; }
+.tc-empty { color: #454545; }
 .tc-num { color: #facc15; }
 .tc-file { color: #a78bfa; }
 .tc-header { color: #e8e8e8; }
