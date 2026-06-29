@@ -48,7 +48,8 @@ export default function App() {
 
       <main>
         <section className="hero">
-          <p className="tagline">Detects design system drift in your React codebase.</p>
+          <h1 className="h1">Your design tokens<br />aren't being used.</h1>
+          <p className="tagline">remediation scans your React codebase and tells you exactly where.</p>
           <Terminal />
           <div className="install">
             <span className="install-prefix">$</span>
