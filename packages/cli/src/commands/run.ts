@@ -118,6 +118,7 @@ program
     }
 
     handleOutput(result, options, scanPath);
+    if (result.summary.errors > 0) process.exitCode = 1;
   });
 
 program
@@ -146,6 +147,7 @@ program
     }
 
     handleOutput(result, options, scanPath);
+    if (result.summary.errors > 0) process.exitCode = 1;
   });
 
 function getSeverityIcon(severity: string): string {
