@@ -25,6 +25,8 @@
   justify-content: space-between;
 }
 
+.logo-rem { color: #4ade80; }
+
 .nav-logo {
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
   font-size: 14px;

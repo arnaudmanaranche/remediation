@@ -52,7 +52,7 @@ function Nav() {
   return (
     <header className="nav">
       <div className="nav-inner">
-        <Link className="nav-logo" to="/">remediation</Link>
+        <Link className="nav-logo" to="/"><span className="logo-rem">[rem]</span>ediation</Link>
         <nav className="nav-links">
           <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-link-active' : ''}>
             Docs
@@ -190,7 +190,7 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <span className="footer-logo">remediation</span>
+        <span className="footer-logo"><span className="logo-rem">[rem]</span>ediation</span>
         <nav className="footer-links">
           <a href="https://github.com/arnaudmanaranche/remediation" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://npmjs.com/package/remediation" target="_blank" rel="noreferrer">npm</a>
