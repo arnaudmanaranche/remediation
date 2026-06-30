@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#111111"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur-glow">
+      <feGaussianBlur stdDeviation="40" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle green glow top-left -->
+  <ellipse cx="200" cy="160" rx="320" ry="220" fill="#4ade80" opacity="0.04" filter="url(#blur-glow)"/>
+
+  <!-- Grid lines (subtle) -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="630" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="#1a1a1a" stroke-width="1"/>
+
+  <!-- Left panel: branding -->
+  <text x="80" y="220" font-family="'Courier New', Consolas, monospace" font-size="22" fill="#4ade80" letter-spacing="1">[rem]</text>
+  <text x="172" y="220" font-family="'Courier New', Consolas, monospace" font-size="22" fill="#e8e8e8" letter-spacing="1">ediation</text>
+
+  <text x="80" y="310" font-family="Georgia, serif" font-size="54" font-weight="700" fill="#e8e8e8" letter-spacing="-1">Your design tokens</text>
+  <text x="80" y="375" font-family="Georgia, serif" font-size="54" font-weight="700" fill="#e8e8e8" letter-spacing="-1">aren't being used.</text>
+
+  <text x="80" y="430" font-family="system-ui, sans-serif" font-size="22" fill="#777" letter-spacing="-0.3">Scan your React codebase. Find every drift. Fix it in CI.</text>
+
+  <!-- Install command pill -->
+  <rect x="80" y="466" width="340" height="48" rx="8" fill="#111" stroke="#252525" stroke-width="1"/>
+  <text x="104" y="497" font-family="'Courier New', Consolas, monospace" font-size="16" fill="#4ade80">$</text>
+  <text x="124" y="497" font-family="'Courier New', Consolas, monospace" font-size="16" fill="#aaa">npx remediation scan</text>
+
+  <!-- Right panel: terminal mockup -->
+  <rect x="680" y="80" width="448" height="468" rx="10" fill="#111" stroke="#222" stroke-width="1"/>
+
+  <!-- Terminal chrome -->
+  <rect x="680" y="80" width="448" height="44" rx="10" fill="#191919"/>
+  <rect x="680" y="110" width="448" height="14" fill="#191919"/>
+  <circle cx="706" cy="102" r="6" fill="#ff5f57"/>
+  <circle cx="726" cy="102" r="6" fill="#febc2e"/>
+  <circle cx="746" cy="102" r="6" fill="#28c840"/>
+
+  <!-- Terminal tab -->
+  <rect x="796" y="90" width="52" height="24" rx="4" fill="#232323" stroke="#2e2e2e" stroke-width="1"/>
+  <text x="822" y="107" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#999" text-anchor="middle">zsh</text>
+
+  <!-- Terminal body content -->
+  <text x="706" y="165" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#555">$</text>
+  <text x="720" y="165" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#aaa">npx remediation scan ./src</text>
+
+  <!-- Progress bar line -->
+  <text x="706" y="193" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#555">✓</text>
+  <rect x="720" y="181" width="120" height="10" rx="2" fill="#222"/>
+  <rect x="720" y="181" width="48" height="10" rx="2" fill="#4ade80"/>
+  <text x="854" y="193" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#555">17/1,843</text>
+
+  <!-- Violations -->
+  <text x="706" y="228" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#555">Violations by rule:</text>
+
+  <!-- Row 1 -->
+  <text x="718" y="252" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#60a5fa">spacing/hardcoded</text>
+  <text x="854" y="252" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#aaa">912</text>
+  <rect x="890" y="241" width="72" height="9" rx="2" fill="#1e3a52"/>
+  <rect x="890" y="241" width="72" height="9" rx="2" fill="#4ade80" opacity="0.6"/>
+  <text x="970" y="252" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#555">184 files</text>
+
+  <!-- Row 2 -->
+  <text x="718" y="272" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#60a5fa">typography/hardcoded</text>
+  <text x="854" y="272" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#aaa">644</text>
+  <rect x="890" y="261" width="52" height="9" rx="2" fill="#4ade80" opacity="0.55"/>
+  <text x="970" y="272" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#555">112 files</text>
+
+  <!-- Row 3 -->
+  <text x="718" y="292" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#60a5fa">drift</text>
+  <text x="854" y="292" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#aaa">298</text>
+  <rect x="890" y="281" width="24" height="9" rx="2" fill="#4ade80" opacity="0.45"/>
+  <text x="970" y="292" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#555">67 files</text>
+
+  <!-- Row 4 -->
+  <text x="718" y="312" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#60a5fa">colors/hardcoded</text>
+  <text x="854" y="312" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#aaa">271</text>
+  <rect x="890" y="301" width="22" height="9" rx="2" fill="#4ade80" opacity="0.4"/>
+  <text x="970" y="312" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#555">54 files</text>
+
+  <!-- Divider -->
+  <line x1="706" y1="336" x2="1108" y2="336" stroke="#1e1e1e" stroke-width="1"/>
+
+  <!-- Health score box -->
+  <rect x="706" y="352" width="392" height="72" rx="6" fill="#0d0d0d" stroke="#1e1e1e" stroke-width="1"/>
+  <text x="720" y="374" font-family="'Courier New', Consolas, monospace" font-size="11" fill="#555">─── Health Score</text>
+
+  <!-- Score bar -->
+  <rect x="720" y="383" width="280" height="12" rx="3" fill="#1a1a1a"/>
+  <rect x="720" y="383" width="131" height="12" rx="3" fill="#4ade80"/>
+  <text x="1012" y="394" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#aaa" text-anchor="end">47/100</text>
+
+  <text x="720" y="414" font-family="'Courier New', Consolas, monospace" font-size="12" fill="#facc15">Needs improvement</text>
+
+  <!-- Cursor -->
+  <text x="706" y="458" font-family="'Courier New', Consolas, monospace" font-size="13" fill="#555">$</text>
+  <rect x="720" y="445" width="9" height="16" rx="1" fill="#4ade80" opacity="0.8"/>
+
+  <!-- Bottom border accent -->
+  <rect x="0" y="618" width="1200" height="12" fill="#0a0a0a"/>
+  <rect x="0" y="624" width="420" height="2" rx="1" fill="#4ade80" opacity="0.35"/>
+</svg>

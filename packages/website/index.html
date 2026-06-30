@@ -2,13 +2,55 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>remediation — Design system drift detector</title>
+
+    <title>remediation — Design system drift detector for React</title>
+    <meta name="description" content="remediation scans your React codebase and finds every hardcoded color, spacing, typography, and shadow value that should use a design token. Get a 0–100 health score and a full violation report in seconds." />
+    <meta name="keywords" content="design system, design tokens, React, CSS, linter, CLI, drift detector, token enforcement, design system health" />
+    <meta name="author" content="Arnaud Manaranche" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://remediation.dev/" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://remediation.dev/" />
+    <meta property="og:site_name" content="remediation" />
+    <meta property="og:title" content="remediation — Design system drift detector for React" />
+    <meta property="og:description" content="Scan your React codebase for hardcoded values that should use design tokens. Get a 0–100 health score and block drift in CI." />
+    <meta property="og:image" content="https://remediation.dev/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="remediation — Your design tokens aren't being used." />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="remediation — Design system drift detector for React" />
+    <meta name="twitter:description" content="Scan your React codebase for hardcoded values that should use design tokens. Get a 0–100 health score and block drift in CI." />
+    <meta name="twitter:image" content="https://remediation.dev/og-image.svg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Red+Hat+Display:wght@700&display=swap" rel="stylesheet" />
-    <meta name="description" content="CLI tool that scans React source code and detects design system inconsistencies, offering suggestions and automated fixes." />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "remediation",
+      "description": "CLI that scans React codebases for design system drift — hardcoded colors, spacing, typography, shadows, and border-radius values that should use design tokens.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "url": "https://remediation.dev/",
+      "author": { "@type": "Person", "name": "Arnaud Manaranche" }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
