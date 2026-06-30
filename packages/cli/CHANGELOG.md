@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.2...remediation-v0.13.0) (2026-06-29)
+
+
+### Features
+
+* add baseline support to suppress existing violations in CI ([153da70](https://github.com/arnaudmanaranche/remediation/commit/153da7012dd97faeb80a4a45ebb17aa7ac35b86a))
+* add remediation init command to generate config interactively ([98ac164](https://github.com/arnaudmanaranche/remediation/commit/98ac164977f9095da9dfcf611dde3eddc25d51a0))
+* parse CSS/SCSS files via postcss instead of regex fallback ([1c70f9e](https://github.com/arnaudmanaranche/remediation/commit/1c70f9ec93d1e3c2711f3634166dea638a481f29))
+
+
+### Bug Fixes
+
+* exclude token definition files from token-bypass rule scan ([9051dc1](https://github.com/arnaudmanaranche/remediation/commit/9051dc174c38d93f6994c17f517ad7461f1a598d))
+* exit with code 1 when scan finds error-severity violations ([a0b6877](https://github.com/arnaudmanaranche/remediation/commit/a0b68777ba1899993d1e621c96cb09129c317a38))
+
 ## [0.12.2](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.1...remediation-v0.12.2) (2026-06-26)
 
 
