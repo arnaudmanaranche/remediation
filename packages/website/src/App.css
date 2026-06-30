@@ -28,7 +28,7 @@
 .logo-rem { color: #4ade80; }
 
 .nav-logo {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 600;
   color: #e8e8e8;
@@ -65,8 +65,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 0;
 }
+
+.hero .tagline { margin-top: 12px; }
+.hero .install { margin-top: 40px; }
+.hero .terminal-wrapper { margin-top: 44px; }
+.hero .compat { margin-top: 28px; }
 
 .h1 {
   font-family: var(--font-display);
@@ -99,7 +104,7 @@
 }
 
 .install-prefix {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   color: #4ade80;
   flex-shrink: 0;
@@ -107,7 +112,7 @@
 
 .install-cmd {
   font-size: 14px;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   /* shimmer — defined in Terminal.css */
 }
 
@@ -155,7 +160,7 @@
   border: 1px solid #222;
   border-radius: 5px;
   padding: 4px 12px;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   transition: color 0.15s, border-color 0.15s;
 }
 
@@ -239,13 +244,13 @@
 }
 
 .faq-inner {
-  max-width: 680px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
 .faq-title {
   font-size: 13px;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   color: #555;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -365,7 +370,7 @@
 }
 
 .footer-logo {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   color: #888;
 }
@@ -387,5 +392,5 @@
 .footer-copy {
   font-size: 12px;
   color: #777;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
 }

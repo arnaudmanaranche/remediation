@@ -104,7 +104,7 @@
   font-size: 0.7em;
   font-weight: 400;
   color: transparent;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   text-decoration: none;
   transition: color 0.15s;
   user-select: none;
@@ -130,7 +130,7 @@
 }
 
 .docs-content code {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12.5px;
   background: #161616;
   border: 1px solid #252525;
@@ -140,7 +140,7 @@
 }
 
 .docs-muted {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12px !important;
   color: #555 !important;
   background: #111;
@@ -167,7 +167,7 @@
 }
 
 .docs-code-block code {
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   color: #bbb;
   background: none;

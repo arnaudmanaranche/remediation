@@ -49,7 +49,7 @@
   background: #232323;
   border: 1px solid #2e2e2e;
   border-radius: 5px;
-  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: #999;
   padding: 3px 12px;
@@ -59,7 +59,7 @@
 .terminal-body {
   padding: 20px 22px;
   min-height: 440px;
-  font-family: 'Geist Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.65;
   overflow: hidden;

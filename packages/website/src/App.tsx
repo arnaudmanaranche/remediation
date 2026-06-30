@@ -81,7 +81,6 @@ function HomePage() {
       <section className="hero">
         <h1 className="h1">Your design tokens<br />aren't being used.</h1>
         <p className="tagline">remediation scans your React codebase and tells you exactly where.</p>
-        <Terminal />
         <div className="install">
           <span className="install-prefix">$</span>
           <code className="install-cmd" data-text="npx remediation scan">
@@ -89,6 +88,7 @@ function HomePage() {
           </code>
           <button className="copy" onClick={copy}>{copied ? '✓' : 'Copy'}</button>
         </div>
+        <Terminal />
         <div className="compat">
           <span className="compat-label">Works with</span>
           <div className="compat-items">
