@@ -51,7 +51,7 @@
   border-radius: 5px;
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
   font-size: 11px;
-  color: #777;
+  color: #999;
   padding: 3px 12px;
 }
 
@@ -89,7 +89,7 @@
 .t-prompt  { color: #4ade80; }
 .t-cmd     { color: #e8e8e8; }
 .t-dim     { color: #888; }
-.t-muted   { color: #666; }
+.t-muted   { color: #888; }
 .t-rule    { color: #60a5fa; }
 .t-num     { color: #facc15; }
 .t-bar     { color: #4ade80; }
@@ -174,4 +174,16 @@
 @keyframes shimmer {
   0%   { background-position: 100% 0; }
   100% { background-position:   0% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-line {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .t-blank { opacity: 1; animation: none; }
+  .t-cursor { animation: none; opacity: 1; }
+  .t-progress-fill { animation: none; width: 100%; }
+  .install-cmd::before { animation: none; }
 }

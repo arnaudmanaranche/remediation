@@ -39,40 +39,40 @@ function buildLines(): Line[] {
   blank(0.1)
 
   push(<span className="t-dim">Violations by rule:</span>, 0.14)
-  push(<RuleLine name="spacing/hardcoded"    count={3788} bar={16} empty={0}  files={721} />, 0.13)
-  push(<RuleLine name="typography/hardcoded" count={1640} bar={7}  empty={9}  files={408} />, 0.13)
-  push(<RuleLine name="drift"                count={523}  bar={2}  empty={14} files={134} />, 0.13)
-  push(<RuleLine name="shadows/hardcoded"    count={226}  bar={1}  empty={15} files={89}  />, 0.13)
-  push(<RuleLine name="colors/hardcoded"     count={204}  bar={1}  empty={15} files={67}  />, 0.13)
-  push(<RuleLine name="radius/hardcoded"     count={169}  bar={1}  empty={15} files={54}  />, 0.13)
+  push(<RuleLine name="spacing/hardcoded"    count={912} bar={12} empty={4}  files={184} />, 0.13)
+  push(<RuleLine name="typography/hardcoded" count={644} bar={8}  empty={8}  files={112} />, 0.13)
+  push(<RuleLine name="drift"                count={298} bar={4}  empty={12} files={67}  />, 0.13)
+  push(<RuleLine name="colors/hardcoded"     count={271} bar={3}  empty={13} files={54}  />, 0.13)
+  push(<RuleLine name="shadows/hardcoded"    count={184} bar={2}  empty={14} files={38}  />, 0.13)
+  push(<RuleLine name="radius/hardcoded"     count={139} bar={1}  empty={15} files={29}  />, 0.13)
   blank(0.12)
 
   push(<span className="t-dim">Top affected files:</span>, 0.14)
-  push(<FileLine n={47} f="src/components/Button.tsx" />, 0.08)
-  push(<FileLine n={31} f="src/pages/Dashboard.tsx"  />, 0.08)
-  push(<FileLine n={28} f="src/components/Card.tsx"  />, 0.08)
-  push(<FileLine n={21} f="src/components/Badge.tsx" />, 0.08)
-  push(<FileLine n={18} f="src/components/Text.tsx"  />, 0.08)
-  push(<span className="t-muted">  ... and 2348 more files</span>, 0.14)
+  push(<FileLine n={34} f="src/components/Button.tsx" />, 0.08)
+  push(<FileLine n={28} f="src/pages/Dashboard.tsx"  />, 0.08)
+  push(<FileLine n={19} f="src/components/Card.tsx"  />, 0.08)
+  push(<FileLine n={15} f="src/components/Form.tsx"  />, 0.08)
+  push(<FileLine n={12} f="src/components/Text.tsx"  />, 0.08)
+  push(<span className="t-muted">  ... and 418 more files</span>, 0.14)
   blank(0.12)
 
   push(<span className="t-border">┌─ Summary ──────────────────────────────────┐</span>, 0.08)
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-error">✖  5238 errors</span>
+      <span className="t-error">✖  1447 errors</span>
       <span className="t-border">    </span>
-      <span className="t-bar">████████████████</span>
-      <span className="t-border">        │</span>
+      <span className="t-bar">████████████</span>
+      <span className="t-border">            │</span>
     </span>, 0.07
   )
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-warning">⚠  1312 warnings</span>
+      <span className="t-warning">⚠  1001 warnings</span>
       <span className="t-border">  </span>
-      <span className="t-bar">████████</span>
-      <span className="t-empty">░░░░░░░░</span>
+      <span className="t-bar">███████</span>
+      <span className="t-empty">░░░░░░░░░</span>
       <span className="t-border">        │</span>
     </span>, 0.07
   )
@@ -80,15 +80,15 @@ function buildLines(): Line[] {
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-dim">6550 total violations</span>
+      <span className="t-dim">2448 total violations</span>
       <span className="t-border">                     │</span>
     </span>, 0.07
   )
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-dim">2353 files affected</span>
-      <span className="t-border">                       │</span>
+      <span className="t-dim">423 files affected</span>
+      <span className="t-border">                        │</span>
     </span>, 0.07
   )
   push(<span className="t-border">└────────────────────────────────────────────┘</span>, 0.12)
@@ -98,17 +98,18 @@ function buildLines(): Line[] {
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-empty">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>
+      <span className="t-bar">███████████████</span>
+      <span className="t-empty">░░░░░░░░░░░░░░░░░</span>
       <span className="t-border">  </span>
-      <span className="t-num">0/100</span>
-      <span className="t-border">  │</span>
+      <span className="t-num">47/100</span>
+      <span className="t-border"> │</span>
     </span>, 0.07
   )
   push(
     <span>
       <span className="t-border">│  </span>
-      <span className="t-error">Critical</span>
-      <span className="t-border">                                   │</span>
+      <span className="t-warning">Needs improvement</span>
+      <span className="t-border">                         │</span>
     </span>, 0.07
   )
   push(<span className="t-border">└────────────────────────────────────────────┘</span>, 0)
@@ -161,7 +162,7 @@ function Cursor({ delay }: { delay: number }) {
 
 function ProgressLine() {
   const [count, setCount] = useState(0)
-  const target = 2423
+  const target = 1843
   const startRef = useRef<number | null>(null)
   const duration = 2200
 

@@ -52,7 +52,7 @@ function Nav() {
   return (
     <header className="nav">
       <div className="nav-inner">
-        <Link className="nav-logo" to="/">⚡ remediation</Link>
+        <Link className="nav-logo" to="/">remediation</Link>
         <nav className="nav-links">
           <NavLink to="/docs" className={({ isActive }) => isActive ? 'nav-link-active' : ''}>
             Docs
@@ -89,13 +89,22 @@ function HomePage() {
           </code>
           <button className="copy" onClick={copy}>{copied ? '✓' : 'Copy'}</button>
         </div>
-        <ul className="facts">
-          <li>6 rules — colors, spacing, typography, shadows, radius, drift</li>
-          <li>JSX · TSX · CSS · SCSS</li>
-          <li>Baseline mode for legacy codebases</li>
-          <li>Exit code 1 in CI on errors</li>
-        </ul>
+        <div className="compat">
+          <span className="compat-label">Works with</span>
+          <div className="compat-items">
+            <span>Next.js</span>
+            <span>Vite</span>
+            <span>Remix</span>
+            <span>CSS</span>
+            <span>SCSS</span>
+            <span>Tailwind*</span>
+            <span>Storybook</span>
+          </div>
+          <p className="compat-note">* inline styles and CSS files only — utility classes are not scanned</p>
+        </div>
       </section>
+
+      <WorkflowSection />
 
       <section className="faq-section">
         <div className="faq-inner">
@@ -108,8 +117,53 @@ function HomePage() {
         </div>
       </section>
 
+      <div className="closing">
+        <div className="closing-inner">
+          <code className="closing-cmd">npx remediation scan</code>
+          <Link className="closing-docs" to="/docs">Read the docs →</Link>
+        </div>
+      </div>
+
       <Footer />
     </main>
+  )
+}
+
+const WORKFLOW_STEPS = [
+  {
+    n: '1',
+    heading: 'Scan',
+    desc: 'Run against your codebase. Get a health score and every violation grouped by rule, file, and severity.',
+    code: 'npx remediation scan',
+  },
+  {
+    n: '2',
+    heading: 'Configure',
+    desc: 'Set rule severities and ignore patterns. Error-level rules will fail CI; warning-level rules won\'t.',
+    code: 'npx remediation init',
+  },
+  {
+    n: '3',
+    heading: 'Enforce',
+    desc: 'Error-severity rules exit with code 1. Commit the baseline and CI only blocks on new drift — not pre-existing debt.',
+    code: 'remediation scan --save-baseline',
+  },
+]
+
+function WorkflowSection() {
+  return (
+    <section className="workflow">
+      <div className="workflow-inner">
+        {WORKFLOW_STEPS.map(s => (
+          <div key={s.n} className="workflow-step">
+            <span className="workflow-n">{s.n}</span>
+            <h3 className="workflow-heading">{s.heading}</h3>
+            <p className="workflow-desc">{s.desc}</p>
+            <code className="workflow-code">{s.code}</code>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -117,7 +171,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className={`faq-item ${open ? 'faq-open' : ''}`}>
-      <button className="faq-q" onClick={() => setOpen(o => !o)}>
+      <button className="faq-q" aria-expanded={open} onClick={() => setOpen(o => !o)}>
         <span>{q}</span>
         <span className="faq-chevron">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -136,26 +190,14 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <div className="footer-brand">
-          <span className="footer-logo">⚡ remediation</span>
-          <p className="footer-tagline">Design system lint for React.</p>
-          <p className="footer-copy">MIT License · Open source</p>
-        </div>
-        <div className="footer-cols">
-          <div className="footer-col">
-            <span className="footer-col-title">Project</span>
-            <a href="https://github.com/arnaudmanaranche/remediation" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="https://npmjs.com/package/remediation" target="_blank" rel="noreferrer">npm</a>
-            <a href="https://github.com/arnaudmanaranche/remediation/releases" target="_blank" rel="noreferrer">Changelog</a>
-          </div>
-          <div className="footer-col">
-            <span className="footer-col-title">Docs</span>
-            <Link to="/docs#cmd-scan">Commands</Link>
-            <Link to="/docs#rule-colors">Rules</Link>
-            <Link to="/docs#config-file">Configuration</Link>
-            <Link to="/docs#ci-github">CI usage</Link>
-          </div>
-        </div>
+        <span className="footer-logo">remediation</span>
+        <nav className="footer-links">
+          <a href="https://github.com/arnaudmanaranche/remediation" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://npmjs.com/package/remediation" target="_blank" rel="noreferrer">npm</a>
+          <a href="https://github.com/arnaudmanaranche/remediation/releases" target="_blank" rel="noreferrer">Changelog</a>
+          <Link to="/docs">Docs</Link>
+        </nav>
+        <span className="footer-copy">MIT</span>
       </div>
     </footer>
   )

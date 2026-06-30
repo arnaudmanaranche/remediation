@@ -67,19 +67,22 @@
 }
 
 .h1 {
-  font-size: clamp(36px, 5vw, 56px);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4.5vw, 52px);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   color: #e8e8e8;
   text-align: center;
+  text-wrap: balance;
 }
 
 .tagline {
-  font-size: 15px;
-  color: #777;
+  font-size: 16px;
+  color: #aaa;
   letter-spacing: -0.01em;
   text-align: center;
+  text-wrap: pretty;
 }
 
 /* Install */
@@ -120,24 +123,111 @@
 }
 .copy:hover { border-color: #555; color: #ddd; }
 
-/* Facts */
-.facts {
-  list-style: none;
+/* Compat */
+.compat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.compat-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777;
+  font-weight: 600;
+}
+
+.compat-items {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 24px;
+  gap: 8px;
 }
 
-.facts li {
+.compat-items span {
   font-size: 13px;
-  color: #777;
+  color: #888;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 5px;
+  padding: 4px 12px;
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.facts li::before {
-  content: '— ';
+.compat-items span:hover {
+  color: #ccc;
+  border-color: #333;
+}
+
+.compat-note {
+  font-size: 12px;
+  color: #777;
+}
+
+/* ── Workflow ────────────────────────────────────── */
+.workflow {
+  border-top: 1px solid #1a1a1a;
+  padding: 72px 28px;
+}
+
+.workflow-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 48px;
+}
+
+@media (max-width: 640px) {
+  .workflow-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+.workflow-step {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workflow-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: #555;
+  letter-spacing: 0.04em;
+}
+
+.workflow-heading {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: #ccc;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.workflow-desc {
+  font-size: 14px;
+  color: #888;
+  line-height: 1.7;
+}
+
+.workflow-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #aaa;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 4px;
+  padding: 5px 10px;
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+  white-space: nowrap;
 }
 
 /* ── FAQ ─────────────────────────────────────────── */
@@ -180,11 +270,12 @@
   gap: 16px;
   cursor: pointer;
   text-align: left;
-  font-size: 16px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
   color: #ccc;
   letter-spacing: -0.02em;
-  line-height: 1.4;
+  line-height: 1.35;
   transition: color 0.15s;
 }
 .faq-q:hover { color: #eee; }
@@ -212,21 +303,54 @@
 
 .faq-a {
   overflow: hidden;
-  font-size: 14.5px;
-  color: #777;
+  min-height: 0;
+  font-size: 15px;
+  color: #999;
   line-height: 1.75;
   padding-bottom: 0;
-  transition: padding-bottom 0.25s ease;
 }
 
 .faq-open .faq-a {
   padding-bottom: 22px;
 }
 
+/* ── Closing strip ───────────────────────────────── */
+.closing {
+  border-top: 1px solid #1a1a1a;
+  padding: 48px 28px;
+}
+
+.closing-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.closing-cmd {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #aaa;
+  background: #111;
+  border: 1px solid #252525;
+  border-radius: 6px;
+  padding: 9px 18px;
+}
+
+.closing-docs {
+  font-size: 13.5px;
+  color: #888;
+  transition: color 0.15s;
+}
+.closing-docs:hover { color: #ddd; }
+
 /* ── Footer ──────────────────────────────────────── */
 .footer {
-  border-top: 1px solid #1a1a1a;
-  padding: 60px 28px 48px;
+  border-top: 1px solid #161616;
+  padding: 20px 28px;
   margin-top: auto;
 }
 
@@ -234,62 +358,32 @@
   max-width: 860px;
   margin: 0 auto;
   display: flex;
-  gap: 60px;
-  align-items: flex-start;
-}
-
-@media (max-width: 640px) {
-  .footer-inner { flex-direction: column; gap: 40px; }
-}
-
-.footer-brand {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 24px;
 }
 
 .footer-logo {
   font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
-  font-size: 14px;
-  font-weight: 600;
-  color: #ccc;
+  font-size: 13px;
+  color: #888;
 }
 
-.footer-tagline {
-  font-size: 13px;
-  color: #555;
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
 }
+
+.footer-links a {
+  font-size: 13px;
+  color: #888;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: #ccc; }
 
 .footer-copy {
   font-size: 12px;
-  color: #3a3a3a;
-  margin-top: 4px;
+  color: #777;
+  font-family: 'Geist Mono', 'SF Mono', Consolas, monospace;
 }
-
-.footer-cols {
-  display: flex;
-  gap: 60px;
-}
-
-.footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.footer-col-title {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #444;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.footer-col a {
-  font-size: 13.5px;
-  color: #666;
-  transition: color 0.15s;
-}
-.footer-col a:hover { color: #bbb; }
