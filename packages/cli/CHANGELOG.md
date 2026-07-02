@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.13.0...remediation-v0.14.0) (2026-07-02)
+
+
+### Features
+
+* **cli:** AST-based codemod with template literals and import injection ([893d1a1](https://github.com/arnaudmanaranche/remediation/commit/893d1a1aa82237d7463a73e729a8560922afc220))
+* **cli:** cluster and codemod typography tokens (fontSize, fontWeight) ([514d650](https://github.com/arnaudmanaranche/remediation/commit/514d650ed51ae9999f918bfed7c66d63087561f0))
+
+
+### Bug Fixes
+
+* **cli:** make codemod --no-dry-run apply changes and respect config tokens ([3c7fe74](https://github.com/arnaudmanaranche/remediation/commit/3c7fe746c5424541ab35bb20ee26b83c8b3e8454))
+
 ## [0.13.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.12.2...remediation-v0.13.0) (2026-06-29)
 
 
