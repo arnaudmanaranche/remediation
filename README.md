@@ -249,10 +249,26 @@ module.exports = {
     '#1976D2': 'colors.primary',
     '#D32F2F': 'colors.danger',
   },
+
+  // Module the codemod imports token references from.
+  // When set, `analyze --codemod --no-dry-run` injects the needed import
+  // into every file it edits. When omitted, the codemod still applies the
+  // replacements but lists the imports you need to add by hand.
+  tokensImport: '@/design/tokens',
 };
 ```
 
-The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement.
+The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement. The codemod reuses these mappings, so `#1976D2` is rewritten to `colors.primary` (your name) rather than an auto-generated one.
+
+### Codemod behavior
+
+`analyze --codemod` rewrites hardcoded values to token references by editing the source in place (it never regenerates or reformats your files):
+
+- **Whole-value literals** become bare references: `'#1976D2'` → `colors.primary`.
+- **Compound and shorthand values** become template literals, preserving the surrounding text: `'8px 16px'` → `` `${spacing.sm} ${spacing.md}` ``, `'0 2px 4px #000000'` → `` `0 2px 4px ${colors.black}` ``.
+- **Imports** for the token roots used (`colors`, `spacing`, …) are injected from `tokensImport` when configured.
+
+Preview with `--codemod`; write changes with `--codemod --no-dry-run`.
 
 ### Default Ignore Patterns
 

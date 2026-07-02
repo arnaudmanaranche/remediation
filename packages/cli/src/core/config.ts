@@ -5,6 +5,10 @@ export interface RemediationConfig {
   ignore?: string[];
   rules?: Record<string, 'off' | 'warning' | 'error' | 'info'>;
   tokens?: Record<string, string>;
+  // Module the codemod imports token references from, e.g. '@/design/tokens'.
+  // When set, `analyze --codemod` injects the needed import into edited files;
+  // when omitted, it applies the changes and lists the imports to add by hand.
+  tokensImport?: string;
 }
 
 const CONFIG_FILE = 'remediation.config.js';
@@ -70,6 +74,10 @@ function validateConfig(config: any): RemediationConfig {
         validated.tokens[value] = token;
       }
     }
+  }
+
+  if (typeof config.tokensImport === 'string' && config.tokensImport.length > 0) {
+    validated.tokensImport = config.tokensImport;
   }
 
   return validated;

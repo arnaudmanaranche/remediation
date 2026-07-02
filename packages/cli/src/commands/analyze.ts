@@ -57,6 +57,12 @@ export function registerAnalyzeCommand(program: Command) {
           console.log(pc.dim('Run with --codemod --no-dry-run to apply changes'));
         } else {
           console.log(pc.green(`\n✓ Applied ${codemodResult.changes.length} changes to ${codemodResult.filesModified.length} files`));
+          if (codemodResult.warnings.length > 0) {
+            console.log(pc.yellow('\n⚠ Imports to verify:'));
+            for (const warning of codemodResult.warnings) {
+              console.log(pc.dim(`  ${warning}`));
+            }
+          }
         }
       }
     });
