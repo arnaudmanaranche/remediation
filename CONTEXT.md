@@ -12,9 +12,9 @@ _Avoid_: react-doctor, design-system-linter
 A check that detects a specific category of inconsistency in the codebase (e.g., hardcoded colors, missing tokens).
 _Avoid_: lint, check, detector
 
-**Transform**:
+**Codemod**:
 An automated code modification that fixes a violation detected by a rule.
-_Avoid_: codemod, patch, fixer
+_Avoid_: transform, patch, fixer
 
 **Token**:
 A named design primitive (color, spacing, typography, radius, shadow) defined in the design system.
@@ -26,7 +26,7 @@ _Avoid_: UI library, theme
 
 **User**:
 A front-end developer running remediation on their React project.
-_Aavoid_: consumer, client
+_Avoid_: consumer, client
 
 **Dead Component**:
 A React component that is never imported or used anywhere in the codebase.

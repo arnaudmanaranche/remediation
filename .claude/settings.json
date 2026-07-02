@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/sync-docs-reminder.sh\"",
+            "statusMessage": "Checking knowledge docs are in sync"
+          }
+        ]
+      }
+    ]
+  }
+}
