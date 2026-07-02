@@ -105,6 +105,36 @@ function suggestName(cluster: Cluster): string {
     return 'xxl';
   }
 
+  if (cluster.type === 'typography') {
+    const c = cluster.canonical;
+
+    // Font size (has a unit) → a size scale.
+    const sizeMatch = c.match(/^(\d+(?:\.\d+)?)(px|rem|em)$/);
+    if (sizeMatch) {
+      let px = parseFloat(sizeMatch[1]);
+      if (sizeMatch[2] !== 'px') px *= 16;
+      if (px <= 12) return 'xs';
+      if (px <= 14) return 'sm';
+      if (px <= 16) return 'md';
+      if (px <= 20) return 'lg';
+      if (px <= 24) return 'xl';
+      return 'xxl';
+    }
+
+    // Font weight (keyword or numeric) → a weight scale.
+    const weight = c.toLowerCase();
+    if (weight === 'bold') return 'bold';
+    if (weight === 'normal') return 'regular';
+    const n = parseInt(c, 10);
+    if (!isNaN(n)) {
+      if (n <= 300) return 'light';
+      if (n <= 400) return 'regular';
+      if (n <= 500) return 'medium';
+      if (n <= 600) return 'semibold';
+      return 'bold';
+    }
+  }
+
   return 'unknown';
 }
 
@@ -184,15 +214,22 @@ export function clusterValues(values: NormalizedValue[]): Cluster[] {
     }
   }
 
-  // Add other values as individual clusters
+  // Cluster typography (and any other) values by exact canonical value.
+  const byCanonical = new Map<string, NormalizedValue[]>();
   for (const value of otherValues) {
+    const arr = byCanonical.get(value.canonical) || [];
+    arr.push(value);
+    byCanonical.set(value.canonical, arr);
+  }
+
+  for (const [canonical, vals] of byCanonical) {
     clusters.push({
       id: clusters.length,
-      type: value.type,
-      canonical: value.canonical,
-      values: [value],
-      count: 1,
-      files: [value.file],
+      type: vals[0].type,
+      canonical,
+      values: vals,
+      count: vals.length,
+      files: [...new Set(vals.map(v => v.file))],
     });
   }
 
@@ -204,6 +241,7 @@ export function getSuggestedNames(clusters: Cluster[]): Map<number, string> {
 
   const colorCounts = new Map<string, number>();
   const spacingCounts = new Map<string, number>();
+  const typographyCounts = new Map<string, number>();
 
   for (const cluster of clusters) {
     if (cluster.type === 'color') {
@@ -215,6 +253,11 @@ export function getSuggestedNames(clusters: Cluster[]): Map<number, string> {
       const name = suggestName(cluster);
       const count = spacingCounts.get(name) || 0;
       spacingCounts.set(name, count + 1);
+      names.set(cluster.id, count > 0 ? `${name}${count + 1}` : name);
+    } else if (cluster.type === 'typography') {
+      const name = suggestName(cluster);
+      const count = typographyCounts.get(name) || 0;
+      typographyCounts.set(name, count + 1);
       names.set(cluster.id, count > 0 ? `${name}${count + 1}` : name);
     } else {
       names.set(cluster.id, 'unknown');

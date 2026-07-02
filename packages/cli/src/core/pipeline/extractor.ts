@@ -61,7 +61,10 @@ function extractFromFile(filePath: string): ExtractedValue[] {
         if (sizeMatch) {
           values.push({ type: 'typography', value: sizeMatch[0], raw: sizeMatch[0], file: filePath, line: lineIndex + 1, column: sizeMatch.index! + 1 });
         }
-        const weightMatch = line.match(/font-weight:\s*(\d+|bold|normal)/);
+        // CSS `font-weight: 600` and JSX `fontWeight: 600` / `fontWeight: '600'`.
+        const weightMatch =
+          line.match(/font-weight:\s*(\d+|bold|normal)/) ||
+          line.match(/fontWeight:\s*['"]?(\d+|bold|normal)['"]?/);
         if (weightMatch) {
           values.push({ type: 'typography', value: weightMatch[1], raw: weightMatch[0], file: filePath, line: lineIndex + 1, column: weightMatch.index! + 1 });
         }

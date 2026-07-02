@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as parser from '@babel/parser';
 import { TokenProposal } from './decision';
 import { toCanonical } from './normalizer';
-import { ALL_STYLE_PROPS } from '../ast/cssProperties';
+import { ALL_STYLE_PROPS, TYPOGRAPHY_PROPS } from '../ast/cssProperties';
 import { loadConfig } from '../config';
 
 export interface CodemodChange {
@@ -76,23 +76,36 @@ function getLiteralString(value: AstNode): string | null {
 function generateTokenReference(tokenName: string, type: string): string {
   if (type === 'color') return `colors.${tokenName}`;
   if (type === 'spacing') return `spacing.${tokenName}`;
+  if (type === 'typography') return `typography.${tokenName}`;
   return tokenName;
 }
 
-// canonical value (e.g. '#2563eb', '8px') -> full token reference to emit.
+interface Lookups {
+  // color/spacing tokens, matched as sub-values inside CSS strings.
+  value: Map<string, string>;
+  // typography tokens, matched as the whole value of a typography property.
+  typography: Map<string, string>;
+}
+
+// canonical value (e.g. '#2563eb', '8px', '14px') -> full token reference.
 // Every member of a cluster maps to the cluster's token, so near values that
 // were snapped together during clustering (e.g. 6px into an 8px cluster) are
-// all rewritten to the same token.
-function buildLookup(proposals: TokenProposal[]): Map<string, string> {
-  const lookup = new Map<string, string>();
+// all rewritten to the same token. Typography lives in its own map so a size
+// like '14px' never collides with a spacing '14px'.
+function buildLookups(proposals: TokenProposal[]): Lookups {
+  const value = new Map<string, string>();
+  const typography = new Map<string, string>();
+
   for (const p of proposals) {
     const ref = p.tokenRef ?? generateTokenReference(p.tokenName, p.cluster.type);
-    lookup.set(p.cluster.canonical, ref);
-    for (const value of p.cluster.values) {
-      lookup.set(value.canonical, ref);
+    const target = p.cluster.type === 'typography' ? typography : value;
+    target.set(p.cluster.canonical, ref);
+    for (const v of p.cluster.values) {
+      target.set(v.canonical, ref);
     }
   }
-  return lookup;
+
+  return { value, typography };
 }
 
 // Individual color/length tokens inside a (possibly compound) CSS value string.
@@ -170,7 +183,7 @@ function importAnchor(ast: AstNode): { pos: number; leadingNewline: boolean } {
   return { pos: 0, leadingNewline: false };
 }
 
-function collectFileWork(content: string, lookup: Map<string, string>): FileWork | null {
+function collectFileWork(content: string, lookups: Lookups): FileWork | null {
   let ast: AstNode;
   try {
     ast = parser.parse(content, PARSER_OPTIONS) as unknown as AstNode;
@@ -182,6 +195,19 @@ function collectFileWork(content: string, lookup: Map<string, string>): FileWork
   const changes: CodemodChange[] = [];
   const roots = new Set<string>();
 
+  const record = (value: AstNode, expr: string, refs: string[]) => {
+    edits.push({ start: value.start!, end: value.end!, text: expr });
+    for (const ref of refs) roots.add(ref.split('.')[0]);
+    changes.push({
+      file: '', // filled in by caller
+      line: value.loc?.start.line ?? 0,
+      column: (value.loc?.start.column ?? 0) + 1,
+      oldValue: content.slice(value.start, value.end),
+      newValue: expr,
+      tokenName: refs.join(', '),
+    });
+  };
+
   walk(ast, (node) => {
     if (node.type !== 'ObjectProperty') return;
     const key = node.key as AstNode;
@@ -190,23 +216,25 @@ function collectFileWork(content: string, lookup: Map<string, string>): FileWork
     if (!propName || !ALL_STYLE_PROPS.has(propName)) return;
     if (typeof value.start !== 'number' || typeof value.end !== 'number') return;
 
+    // Typography values are whole tokens (a font size like '14px' or a numeric
+    // weight like 600) — match the entire value against the typography map.
+    if (TYPOGRAPHY_PROPS.has(propName)) {
+      const rawTypo =
+        value.type === 'NumericLiteral' ? String(value.value) : getLiteralString(value);
+      if (rawTypo === null) return;
+      const ref = lookups.typography.get(rawTypo);
+      if (!ref) return;
+      record(value, ref, [ref]);
+      return;
+    }
+
     const raw = getLiteralString(value);
     if (raw === null) return;
 
-    const built = buildExpression(raw, lookup);
+    const built = buildExpression(raw, lookups.value);
     if (!built) return;
 
-    edits.push({ start: value.start, end: value.end, text: built.expr });
-    for (const ref of built.refs) roots.add(ref.split('.')[0]);
-
-    changes.push({
-      file: '', // filled in by caller
-      line: value.loc?.start.line ?? 0,
-      column: (value.loc?.start.column ?? 0) + 1,
-      oldValue: content.slice(value.start, value.end),
-      newValue: built.expr,
-      tokenName: built.refs.join(', '),
-    });
+    record(value, built.expr, built.refs);
   });
 
   if (edits.length === 0) return null;
@@ -244,7 +272,7 @@ export function applyCodemod(
 ): CodemodResult {
   const config = loadConfig(projectPath);
   const tokensImport = config.tokensImport;
-  const lookup = buildLookup(proposals);
+  const lookups = buildLookups(proposals);
 
   const allChanges: CodemodChange[] = [];
   const filesModified = new Set<string>();
@@ -256,7 +284,7 @@ export function applyCodemod(
     if (!fs.existsSync(file)) continue;
 
     const content = fs.readFileSync(file, 'utf-8');
-    const work = collectFileWork(content, lookup);
+    const work = collectFileWork(content, lookups);
     if (!work) continue;
 
     for (const c of work.changes) c.file = file;

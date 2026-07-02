@@ -266,7 +266,8 @@ The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches 
 
 - **Whole-value literals** become bare references: `'#1976D2'` → `colors.primary`.
 - **Compound and shorthand values** become template literals, preserving the surrounding text: `'8px 16px'` → `` `${spacing.sm} ${spacing.md}` ``, `'0 2px 4px #000000'` → `` `0 2px 4px ${colors.black}` ``.
-- **Imports** for the token roots used (`colors`, `spacing`, …) are injected from `tokensImport` when configured.
+- **Typography** is handled too, including numeric weights: `fontSize: '14px'` → `typography.sm`, `fontWeight: 600` → `typography.semibold`.
+- **Imports** for the token roots used (`colors`, `spacing`, `typography`, …) are injected from `tokensImport` when configured.
 
 Preview with `--codemod`; write changes with `--codemod --no-dry-run`.
 

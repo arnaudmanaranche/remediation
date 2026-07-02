@@ -320,7 +320,7 @@ function DocsContent() {
           Whole-value literals become bare references, while compound and shorthand values
           become template literals that preserve the surrounding text:
         </p>
-        <Code colorize code={`// '#1976D2'        → colors.primary\n// '8px 16px'       → \`\${spacing.sm} \${spacing.md}\`\n// '0 2px 4px #000' → \`0 2px 4px \${colors.black}\``} />
+        <Code colorize code={`// '#1976D2'        → colors.primary\n// '8px 16px'       → \`\${spacing.sm} \${spacing.md}\`\n// '0 2px 4px #000' → \`0 2px 4px \${colors.black}\`\n// fontSize '14px'  → typography.sm\n// fontWeight 600   → typography.semibold`} />
         <p>
           When <code>tokensImport</code> is set in your config, the needed import is injected
           into every edited file. See <a href="#config-tokens-import">Token import</a>.

@@ -102,6 +102,36 @@ describe('applyCodemod', () => {
     expect(fs.readFileSync(file, 'utf-8')).toContain('borderRadius: spacing.sm');
   });
 
+  it('rewrites a string typography value (fontSize)', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ fontSize: '14px' }} />;`);
+    const p = proposal('typography', '14px', file, { tokenName: 'sm' });
+
+    applyCodemod(tmpDir, [p], false);
+
+    expect(fs.readFileSync(file, 'utf-8')).toContain('fontSize: typography.sm');
+  });
+
+  it('rewrites a numeric typography value (fontWeight)', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ fontWeight: 600 }} />;`);
+    const p = proposal('typography', '600', file, { tokenName: 'semibold' });
+
+    applyCodemod(tmpDir, [p], false);
+
+    expect(fs.readFileSync(file, 'utf-8')).toContain('fontWeight: typography.semibold');
+  });
+
+  it('does not confuse a spacing 14px with a typography 14px', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ padding: '14px', fontSize: '14px' }} />;`);
+    const space = proposal('spacing', '14px', file, { tokenRef: 'spacing.md' });
+    const type = proposal('typography', '14px', file, { tokenName: 'sm' });
+
+    applyCodemod(tmpDir, [space, type], false);
+
+    const out = fs.readFileSync(file, 'utf-8');
+    expect(out).toContain('padding: spacing.md');
+    expect(out).toContain('fontSize: typography.sm');
+  });
+
   it('injects the token import when tokensImport is configured', () => {
     writeConfig(`{ tokensImport: '@/design/tokens' }`);
     const file = writeFile(
