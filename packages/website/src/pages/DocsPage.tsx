@@ -41,6 +41,7 @@ const SIDEBAR = [
       { id: 'config-ignore',   label: 'Ignore patterns' },
       { id: 'config-severity', label: 'Rule severity' },
       { id: 'config-tokens',   label: 'Token mappings' },
+      { id: 'config-tokens-import', label: 'Token import' },
     ],
   },
   {
@@ -314,6 +315,16 @@ function DocsContent() {
           ['--output <file>',         'Generate a tokens.ts output file'],
           ['--min-confidence <level>','Filter proposals: high | medium | low'],
         ]} />
+        <p>
+          The codemod edits your source in place — it never regenerates or reformats files.
+          Whole-value literals become bare references, while compound and shorthand values
+          become template literals that preserve the surrounding text:
+        </p>
+        <Code colorize code={`// '#1976D2'        → colors.primary\n// '8px 16px'       → \`\${spacing.sm} \${spacing.md}\`\n// '0 2px 4px #000' → \`0 2px 4px \${colors.black}\``} />
+        <p>
+          When <code>tokensImport</code> is set in your config, the needed import is injected
+          into every edited file. See <a href="#config-tokens-import">Token import</a>.
+        </p>
       </section>
 
       <section>
@@ -433,9 +444,23 @@ function DocsContent() {
         <Heading id="config-tokens">Token mappings</Heading>
         <p>
           The <code>tokens</code> map powers the <code>token-bypass</code> rule. Each key is
-          a raw value, each value is the token name to suggest as a replacement.
+          a raw value, each value is the token name to suggest as a replacement. The codemod
+          reuses these mappings, so a mapped value is rewritten to <em>your</em> token name
+          (<code>colors.primary</code>) rather than an auto-generated one.
         </p>
         <Code lang="js" code={`module.exports = {\n  tokens: {\n    '#1976D2': 'colors.primary',\n    '#D32F2F': 'colors.danger',\n    '#ffffff': 'colors.white',\n    '8px':     'spacing.sm',\n    '16px':    'spacing.md',\n  },\n}`} />
+      </section>
+
+      <section>
+        <Heading id="config-tokens-import">Token import</Heading>
+        <p>
+          Set <code>tokensImport</code> to the module your tokens live in. When present, the
+          codemod injects the needed import (<code>colors</code>, <code>spacing</code>, …) into
+          every file it edits, so the result compiles. When omitted, the codemod still applies
+          the replacements but lists the imports you need to add by hand.
+        </p>
+        <Code lang="js" code={`module.exports = {\n  tokensImport: '@/design/tokens',\n  tokens: {\n    '#1976D2': 'colors.primary',\n  },\n}`} />
+        <Code code={`// injected at the top of each edited file\nimport { colors, spacing } from '@/design/tokens';`} />
       </section>
 
       {/* ── CI / CD ─────────────────────────────── */}
