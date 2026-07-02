@@ -12,7 +12,7 @@ export function registerAnalyzeCommand(program: Command) {
     .option('--output <file>', 'Generate tokens.ts file')
     .option('--min-confidence <level>', 'Minimum confidence (high, medium, low)', 'low')
     .option('--codemod', 'Apply codemod to replace hardcoded values with tokens', false)
-    .option('--dry-run', 'Preview codemod changes without applying', true)
+    .option('--no-dry-run', 'Write codemod changes to files (default: preview only)')
     .argument('[path]', 'Path to scan', '.')
     .action((scanPath: string, options: { output?: string; minConfidence?: string; codemod?: boolean; dryRun?: boolean }) => {
       console.log(pc.cyan('⚡ Analyzing design system...'));

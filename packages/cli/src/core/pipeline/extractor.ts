@@ -86,6 +86,9 @@ export function extractFromProject(projectPath: string): ExtractedValue[] {
           if (!entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== 'dist' && entry.name !== 'build') {
             traverse(fullPath);
           }
+        } else if (entry.name === 'remediation.config.js') {
+          // Never scan (and therefore never codemod) the tool's own config.
+          continue;
         } else if (/\.(tsx?|jsx?|css|scss)$/.test(entry.name)) {
           values.push(...extractFromFile(fullPath));
         }

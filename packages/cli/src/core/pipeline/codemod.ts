@@ -43,7 +43,8 @@ function findFileChanges(
       if (lineIndex >= lines.length) continue;
 
       const line = lines[lineIndex];
-      const tokenRef = generateTokenReference(proposal.tokenName, proposal.cluster.type);
+      // Prefer the config-declared reference; otherwise derive one from type.
+      const tokenRef = proposal.tokenRef ?? generateTokenReference(proposal.tokenName, proposal.cluster.type);
 
       // Check if the value exists in this line
       const patterns = [

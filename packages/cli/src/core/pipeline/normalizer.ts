@@ -141,3 +141,15 @@ function normalizeValue(value: any): NormalizedValue | null {
 export function normalizeAll(values: any[]): NormalizedValue[] {
   return values.map(normalizeValue).filter((v): v is NormalizedValue => v !== null);
 }
+
+// Reduce a raw config value (e.g. "#2563EB", "8px", "0.5rem") to the same
+// canonical form used by clusters, so config token mappings can be matched.
+export function toCanonical(raw: string): { canonical: string; type: 'color' | 'spacing' } | null {
+  const color = normalizeColor(raw);
+  if (color) return { canonical: color.canonical, type: 'color' };
+
+  const spacing = normalizeSpacing(raw);
+  if (spacing) return { canonical: spacing.canonical, type: 'spacing' };
+
+  return null;
+}

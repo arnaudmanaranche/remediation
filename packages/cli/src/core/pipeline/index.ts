@@ -1,7 +1,8 @@
 import { extractFromProject, ExtractedValue } from './extractor';
-import { normalizeAll, NormalizedValue } from './normalizer';
+import { normalizeAll, NormalizedValue, toCanonical } from './normalizer';
 import { clusterValues, getSuggestedNames, Cluster } from './clusterer';
 import { decideTokens, DecisionResult, TokenProposal } from './decision';
+import { loadConfig } from '../config';
 
 export interface PipelineResult {
   extraction: ExtractedValue[];
@@ -11,11 +12,14 @@ export interface PipelineResult {
 }
 
 export function runPipeline(projectPath: string): PipelineResult {
+  const config = loadConfig(projectPath);
+  const configTokens = buildConfigTokenMap(config.tokens);
+
   const extraction = extractFromProject(projectPath);
   const normalization = normalizeAll(extraction);
   const clustering = clusterValues(normalization);
   const suggestedNames = getSuggestedNames(clustering);
-  const decision = decideTokens(clustering, suggestedNames);
+  const decision = decideTokens(clustering, suggestedNames, configTokens);
 
   return {
     extraction,
@@ -23,6 +27,20 @@ export function runPipeline(projectPath: string): PipelineResult {
     clustering,
     decision,
   };
+}
+
+// Map the config `tokens` mapping (raw value → token reference) onto canonical
+// cluster values, so proposals reuse the names the user already declared.
+function buildConfigTokenMap(tokens?: Record<string, string>): Map<string, string> {
+  const map = new Map<string, string>();
+  if (!tokens) return map;
+
+  for (const [value, ref] of Object.entries(tokens)) {
+    const canon = toCanonical(value);
+    if (canon) map.set(canon.canonical, ref);
+  }
+
+  return map;
 }
 
 export function generateTokensFile(proposals: TokenProposal[]): string {
