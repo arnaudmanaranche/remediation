@@ -9,8 +9,7 @@
  *
  * MAINTAINER: DEFAULT_OTLP_TOKEN must be an Axiom API token scoped
  * ingest-only to DEFAULT_OTLP_DATASET, with a rate limit configured on the
- * Axiom side. It ships publicly in the npm tarball and git history — same
- * threat model as a Sentry DSN or a PostHog public key. Never use a
+ * Axiom side. It ships publicly in the npm tarball and git history. Never use a
  * broader-scoped or unrated-limited token here.
  */
 export const DEFAULT_OTLP_ENDPOINT = 'https://api.axiom.co/v1/traces';
