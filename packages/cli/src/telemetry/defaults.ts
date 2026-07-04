@@ -14,5 +14,5 @@
  * broader-scoped or unrated-limited token here.
  */
 export const DEFAULT_OTLP_ENDPOINT = 'https://api.axiom.co/v1/traces';
-export const DEFAULT_OTLP_DATASET = '<DATASET>';
-export const DEFAULT_OTLP_TOKEN = '<TOKEN>';
+export const DEFAULT_OTLP_DATASET = 'remediation-metrics';
+export const DEFAULT_OTLP_TOKEN = 'xaat-9d9305e1-8c80-4271-b0b7-7fcaccb21368';
