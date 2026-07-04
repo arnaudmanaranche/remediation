@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.14.0...remediation-v0.15.0) (2026-07-04)
+
+
+### Features
+
+* **cli:** add OpenTelemetry usage telemetry with opt-out consent ([ba1fdef](https://github.com/arnaudmanaranche/remediation/commit/ba1fdefa18f869181f747df6b44a6cd8ff66c0e3))
+
 ## [0.14.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.13.0...remediation-v0.14.0) (2026-07-02)
 
 
