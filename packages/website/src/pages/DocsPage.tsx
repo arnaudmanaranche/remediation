@@ -51,6 +51,12 @@ const SIDEBAR = [
       { id: 'ci-baseline', label: 'Baseline mode' },
     ],
   },
+  {
+    title: 'Privacy',
+    items: [
+      { id: 'telemetry', label: 'Telemetry' },
+    ],
+  },
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -487,6 +493,31 @@ function DocsContent() {
           <code>--ignore-baseline</code>:
         </p>
         <Code code="npx remediation scan --ignore-baseline" />
+      </section>
+
+      {/* ── Privacy ─────────────────────────────── */}
+      <section>
+        <Heading id="telemetry">Telemetry</Heading>
+        <p>
+          <code>scan</code>, <code>tokens</code>, and <code>analyze</code> send anonymous usage
+          data — command name, duration, violation counts, and CLI/Node/OS version — via
+          OpenTelemetry. It never includes file paths, source code, config contents, or any
+          other identifier.
+        </p>
+        <p>
+          Disable it with a flag, an env var, or the industry-standard{' '}
+          <code>DO_NOT_TRACK</code> convention:
+        </p>
+        <Code code={`remediation scan --no-telemetry\n\n# or\nREMEDIATION_TELEMETRY=0 remediation scan\n\n# respected automatically:\nDO_NOT_TRACK=1 remediation scan`} />
+        <p>
+          On first run, a one-time notice is printed to stderr and the choice is remembered in{' '}
+          <code>~/.remediation/telemetry.json</code> so it isn't shown again.
+        </p>
+        <p>
+          If you're running a fork or a private build, point telemetry at your own OTLP backend
+          with the standard OpenTelemetry env vars — these always override the built-in default:
+        </p>
+        <Code code={`export OTEL_EXPORTER_OTLP_ENDPOINT="https://your-collector/v1/traces"\nexport OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer%20<TOKEN>"`} />
       </section>
     </>
   )
