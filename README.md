@@ -302,6 +302,22 @@ The baseline is saved to `.remediation-baseline.json`. Commit it alongside your 
 
 With `error`-severity rules configured, the command exits with code `1` on violations — blocking the pipeline. Use `--save-baseline` on first adoption to avoid failing on pre-existing violations.
 
+## Telemetry
+
+`scan`, `tokens`, and `analyze` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
+
+Disable telemetry with:
+
+```bash
+remediation scan --no-telemetry
+# or
+REMEDIATION_TELEMETRY=0 remediation scan
+# or, respected automatically:
+DO_NOT_TRACK=1 remediation scan
+```
+
+See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md) for what's collected and the implementation.
+
 ## License
 
 MIT

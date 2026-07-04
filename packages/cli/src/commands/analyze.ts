@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { runPipeline, generateTokensFile } from '../core/pipeline';
 import { applyCodemod, generateCodemodPreview } from '../core/pipeline/codemod';
+import { withTelemetry } from '../telemetry/instrument';
 import pc from 'picocolors';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,57 +15,65 @@ export function registerAnalyzeCommand(program: Command) {
     .option('--codemod', 'Apply codemod to replace hardcoded values with tokens', false)
     .option('--no-dry-run', 'Write codemod changes to files (default: preview only)')
     .argument('[path]', 'Path to scan', '.')
-    .action((scanPath: string, options: { output?: string; minConfidence?: string; codemod?: boolean; dryRun?: boolean }) => {
-      console.log(pc.cyan('⚡ Analyzing design system...'));
+    .action(async (scanPath: string, options: { output?: string; minConfidence?: string; codemod?: boolean; dryRun?: boolean }, command: Command) => {
+      await withTelemetry('analyze', command.parent?.opts().telemetry, async (span) => {
+        console.log(pc.cyan('⚡ Analyzing design system...'));
 
-      const startTime = Date.now();
-      const result = runPipeline(scanPath);
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const startTime = Date.now();
+        const result = runPipeline(scanPath);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
-      console.log(pc.cyan(`⚡ Analysis complete in ${pc.bold(elapsed)}s`));
-      printAnalysis(result);
+        console.log(pc.cyan(`⚡ Analysis complete in ${pc.bold(elapsed)}s`));
+        printAnalysis(result);
 
-      if (options.output) {
-        const filteredProposals = result.decision.proposals.filter(p => {
-          const order = { high: 0, medium: 1, low: 2 };
-          return order[p.confidence] <= order[options.minConfidence as keyof typeof order];
+        span?.setAttributes({
+          'analyze.design_values_count': result.extraction.length,
+          'analyze.proposals_count': result.decision.proposals.length,
+          'analyze.codemod': Boolean(options.codemod),
         });
 
-        const tokensContent = generateTokensFile(filteredProposals);
-        const outputPath = path.resolve(options.output);
-        fs.writeFileSync(outputPath, tokensContent, 'utf-8');
-        console.log(pc.cyan(`📄 Tokens written to ${pc.bold(outputPath)}`));
-      }
+        if (options.output) {
+          const filteredProposals = result.decision.proposals.filter(p => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[p.confidence] <= order[options.minConfidence as keyof typeof order];
+          });
 
-      if (options.codemod) {
-        const filteredProposals = result.decision.proposals.filter(p => {
-          const order = { high: 0, medium: 1, low: 2 };
-          return order[p.confidence] <= order[options.minConfidence as keyof typeof order];
-        });
-
-        const codemodResult = applyCodemod(scanPath, filteredProposals, options.dryRun);
-
-        if (codemodResult.changes.length === 0) {
-          console.log(pc.yellow('No changes to apply'));
-          return;
+          const tokensContent = generateTokensFile(filteredProposals);
+          const outputPath = path.resolve(options.output);
+          fs.writeFileSync(outputPath, tokensContent, 'utf-8');
+          console.log(pc.cyan(`📄 Tokens written to ${pc.bold(outputPath)}`));
         }
 
-        const preview = generateCodemodPreview(codemodResult.changes);
-        console.log(preview);
+        if (options.codemod) {
+          const filteredProposals = result.decision.proposals.filter(p => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[p.confidence] <= order[options.minConfidence as keyof typeof order];
+          });
 
-        if (options.dryRun) {
-          console.log(pc.dim('\nDRY RUN — no changes applied'));
-          console.log(pc.dim('Run with --codemod --no-dry-run to apply changes'));
-        } else {
-          console.log(pc.green(`\n✓ Applied ${codemodResult.changes.length} changes to ${codemodResult.filesModified.length} files`));
-          if (codemodResult.warnings.length > 0) {
-            console.log(pc.yellow('\n⚠ Imports to verify:'));
-            for (const warning of codemodResult.warnings) {
-              console.log(pc.dim(`  ${warning}`));
+          const codemodResult = applyCodemod(scanPath, filteredProposals, options.dryRun);
+
+          if (codemodResult.changes.length === 0) {
+            console.log(pc.yellow('No changes to apply'));
+            return;
+          }
+
+          const preview = generateCodemodPreview(codemodResult.changes);
+          console.log(preview);
+
+          if (options.dryRun) {
+            console.log(pc.dim('\nDRY RUN — no changes applied'));
+            console.log(pc.dim('Run with --codemod --no-dry-run to apply changes'));
+          } else {
+            console.log(pc.green(`\n✓ Applied ${codemodResult.changes.length} changes to ${codemodResult.filesModified.length} files`));
+            if (codemodResult.warnings.length > 0) {
+              console.log(pc.yellow('\n⚠ Imports to verify:'));
+              for (const warning of codemodResult.warnings) {
+                console.log(pc.dim(`  ${warning}`));
+              }
             }
           }
         }
-      }
+      });
     });
 }
 

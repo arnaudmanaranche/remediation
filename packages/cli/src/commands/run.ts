@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { scanProject, allRules } from '../core/index';
 import { ScanProgress } from '../core/scanner';
 import { saveBaseline, loadBaseline, filterNewViolations } from '../core/baseline';
+import { withTelemetry } from '../telemetry/instrument';
 import pc from 'picocolors';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,7 +13,8 @@ const program = new Command();
 program
   .name('remediation')
   .description('CLI tool that scans React source code and detects design system inconsistencies')
-  .version(version);
+  .version(version)
+  .option('--no-telemetry', 'Disable anonymous CLI usage telemetry (or set DO_NOT_TRACK=1)');
 
 function createProgress(): ScanProgress {
   const BAR_WIDTH = 24;
@@ -110,43 +112,51 @@ program
   .option('--save-baseline', 'Save current violations as baseline')
   .option('--ignore-baseline', 'Ignore baseline file even if it exists')
   .argument('[path]', 'Path to scan', '.')
-  .action(async (scanPath, options) => {
-    const progress = options.format === 'terminal' ? createProgress() : undefined;
-    const startTime = Date.now();
+  .action(async (scanPath, options, command) => {
+    await withTelemetry('scan', command.parent?.opts().telemetry, async (span) => {
+      const progress = options.format === 'terminal' ? createProgress() : undefined;
+      const startTime = Date.now();
 
-    let result = await scanProject(scanPath, allRules, undefined, progress);
+      let result = await scanProject(scanPath, allRules, undefined, progress);
 
-    if (options.format === 'terminal') {
-      printScanComplete(result.files.length, startTime);
-    }
+      if (options.format === 'terminal') {
+        printScanComplete(result.files.length, startTime);
+      }
 
-    if (options.saveBaseline) {
-      const all = result.files.flatMap((f: any) => f.violations);
-      saveBaseline(all, scanPath);
-      console.log(pc.cyan(`✓ Baseline saved: ${all.length} violations recorded to .remediation-baseline.json`));
-      return;
-    }
-
-    if (!options.ignoreBaseline) {
-      const baseline = loadBaseline(scanPath);
-      if (baseline !== null) {
+      if (options.saveBaseline) {
         const all = result.files.flatMap((f: any) => f.violations);
-        const { fresh, suppressed } = filterNewViolations(all, baseline, scanPath);
-        if (suppressed > 0) {
-          const freshFiles = result.files
-            .map((f: any) => ({ ...f, violations: f.violations.filter((v: any) => fresh.includes(v)) }))
-            .filter((f: any) => f.violations.length > 0);
-          const errors = fresh.filter((v: any) => v.severity === 'error').length;
-          const warnings = fresh.filter((v: any) => v.severity === 'warning').length;
-          const infos = fresh.filter((v: any) => v.severity === 'info').length;
-          result = { ...result, files: freshFiles, summary: { total: fresh.length, errors, warnings, infos } };
-          console.log(pc.dim(`  ${suppressed} violation${suppressed > 1 ? 's' : ''} suppressed by baseline`));
+        saveBaseline(all, scanPath);
+        console.log(pc.cyan(`✓ Baseline saved: ${all.length} violations recorded to .remediation-baseline.json`));
+        return;
+      }
+
+      if (!options.ignoreBaseline) {
+        const baseline = loadBaseline(scanPath);
+        if (baseline !== null) {
+          const all = result.files.flatMap((f: any) => f.violations);
+          const { fresh, suppressed } = filterNewViolations(all, baseline, scanPath);
+          if (suppressed > 0) {
+            const freshFiles = result.files
+              .map((f: any) => ({ ...f, violations: f.violations.filter((v: any) => fresh.includes(v)) }))
+              .filter((f: any) => f.violations.length > 0);
+            const errors = fresh.filter((v: any) => v.severity === 'error').length;
+            const warnings = fresh.filter((v: any) => v.severity === 'warning').length;
+            const infos = fresh.filter((v: any) => v.severity === 'info').length;
+            result = { ...result, files: freshFiles, summary: { total: fresh.length, errors, warnings, infos } };
+            console.log(pc.dim(`  ${suppressed} violation${suppressed > 1 ? 's' : ''} suppressed by baseline`));
+          }
         }
       }
-    }
 
-    handleOutput(result, options, scanPath);
-    if (result.summary.errors > 0) process.exitCode = 1;
+      span?.setAttributes({
+        'scan.files_count': result.files.length,
+        'scan.violations_total': result.summary.total,
+        'scan.violations_errors': result.summary.errors,
+      });
+
+      handleOutput(result, options, scanPath);
+      if (result.summary.errors > 0) process.exitCode = 1;
+    });
   });
 
 program
@@ -158,51 +168,59 @@ program
   .option('--save-baseline', 'Save current violations as baseline')
   .option('--ignore-baseline', 'Ignore baseline file even if it exists')
   .argument('[path]', 'Path to scan', '.')
-  .action(async (scanPath, options) => {
-    const tokenRules = allRules.filter(r =>
-      r.name.startsWith('colors/') ||
-      r.name.startsWith('spacing/') ||
-      r.name.startsWith('typography/') ||
-      r.name.startsWith('radius/') ||
-      r.name.startsWith('shadows/')
-    );
+  .action(async (scanPath, options, command) => {
+    await withTelemetry('tokens', command.parent?.opts().telemetry, async (span) => {
+      const tokenRules = allRules.filter(r =>
+        r.name.startsWith('colors/') ||
+        r.name.startsWith('spacing/') ||
+        r.name.startsWith('typography/') ||
+        r.name.startsWith('radius/') ||
+        r.name.startsWith('shadows/')
+      );
 
-    const progress = options.format === 'terminal' ? createProgress() : undefined;
-    const startTime = Date.now();
+      const progress = options.format === 'terminal' ? createProgress() : undefined;
+      const startTime = Date.now();
 
-    let result = await scanProject(scanPath, tokenRules, undefined, progress);
+      let result = await scanProject(scanPath, tokenRules, undefined, progress);
 
-    if (options.format === 'terminal') {
-      printScanComplete(result.files.length, startTime);
-    }
+      if (options.format === 'terminal') {
+        printScanComplete(result.files.length, startTime);
+      }
 
-    if (options.saveBaseline) {
-      const all = result.files.flatMap((f: any) => f.violations);
-      saveBaseline(all, scanPath);
-      console.log(pc.cyan(`✓ Baseline saved: ${all.length} violations recorded to .remediation-baseline.json`));
-      return;
-    }
-
-    if (!options.ignoreBaseline) {
-      const baseline = loadBaseline(scanPath);
-      if (baseline !== null) {
+      if (options.saveBaseline) {
         const all = result.files.flatMap((f: any) => f.violations);
-        const { fresh, suppressed } = filterNewViolations(all, baseline, scanPath);
-        if (suppressed > 0) {
-          const freshFiles = result.files
-            .map((f: any) => ({ ...f, violations: f.violations.filter((v: any) => fresh.includes(v)) }))
-            .filter((f: any) => f.violations.length > 0);
-          const errors = fresh.filter((v: any) => v.severity === 'error').length;
-          const warnings = fresh.filter((v: any) => v.severity === 'warning').length;
-          const infos = fresh.filter((v: any) => v.severity === 'info').length;
-          result = { ...result, files: freshFiles, summary: { total: fresh.length, errors, warnings, infos } };
-          console.log(pc.dim(`  ${suppressed} violation${suppressed > 1 ? 's' : ''} suppressed by baseline`));
+        saveBaseline(all, scanPath);
+        console.log(pc.cyan(`✓ Baseline saved: ${all.length} violations recorded to .remediation-baseline.json`));
+        return;
+      }
+
+      if (!options.ignoreBaseline) {
+        const baseline = loadBaseline(scanPath);
+        if (baseline !== null) {
+          const all = result.files.flatMap((f: any) => f.violations);
+          const { fresh, suppressed } = filterNewViolations(all, baseline, scanPath);
+          if (suppressed > 0) {
+            const freshFiles = result.files
+              .map((f: any) => ({ ...f, violations: f.violations.filter((v: any) => fresh.includes(v)) }))
+              .filter((f: any) => f.violations.length > 0);
+            const errors = fresh.filter((v: any) => v.severity === 'error').length;
+            const warnings = fresh.filter((v: any) => v.severity === 'warning').length;
+            const infos = fresh.filter((v: any) => v.severity === 'info').length;
+            result = { ...result, files: freshFiles, summary: { total: fresh.length, errors, warnings, infos } };
+            console.log(pc.dim(`  ${suppressed} violation${suppressed > 1 ? 's' : ''} suppressed by baseline`));
+          }
         }
       }
-    }
 
-    handleOutput(result, options, scanPath);
-    if (result.summary.errors > 0) process.exitCode = 1;
+      span?.setAttributes({
+        'scan.files_count': result.files.length,
+        'scan.violations_total': result.summary.total,
+        'scan.violations_errors': result.summary.errors,
+      });
+
+      handleOutput(result, options, scanPath);
+      if (result.summary.errors > 0) process.exitCode = 1;
+    });
   });
 
 function getSeverityIcon(severity: string): string {

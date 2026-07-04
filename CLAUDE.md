@@ -22,6 +22,8 @@ before working on an area rather than re-discovering it:
 - **[docs/knowledge/release-process.md](docs/knowledge/release-process.md)** —
   release-please + Conventional Commits (only `packages/cli` publishes).
 - **[docs/knowledge/website.md](docs/knowledge/website.md)** — website stack + brand rules.
+- **[docs/knowledge/telemetry.md](docs/knowledge/telemetry.md)** — OpenTelemetry
+  usage instrumentation: what's collected, consent/opt-out, export gating.
 
 Existing top-level docs remain the source of truth for their topics:
 - `CONTEXT.md` — enforced vocabulary (Rule / Codemod / Token …). Use the exact terms.
