@@ -326,7 +326,18 @@ function DocsContent() {
           Whole-value literals become bare references, while compound and shorthand values
           become template literals that preserve the surrounding text:
         </p>
-        <Code colorize code={`// '#1976D2'        → colors.primary\n// '8px 16px'       → \`\${spacing.sm} \${spacing.md}\`\n// '0 2px 4px #000' → \`0 2px 4px \${colors.black}\`\n// fontSize '14px'  → typography.sm\n// fontWeight 600   → typography.semibold`} />
+        <Code colorize code={`// '#1976D2'        → colors.primary\n// '8px 16px'       → \`\${spacing.sm} \${spacing.md}\`\n// '0 2px 4px #000' → \`0 2px 4px \${colors.black}\`\n// '1px solid #eee' → \`1px solid \${colors.gray200}\`\n// fontSize '14px'  → typography.sm\n// fontWeight 600   → typography.semibold`} />
+        <p>
+          CSS-in-JS tagged templates (<code>styled.div`...`</code>, <code>css`...`</code>) are
+          rewritten in place too: matched values become <code>${'{…}'}</code> interpolations
+          and existing interpolations are left untouched.
+        </p>
+        <p>
+          Auto-generated names stay readable when two values land on the same scale name:
+          the value is encoded instead of a counter (<code>spacing.md_16</code> vs{' '}
+          <code>spacing.md_15</code>, <code>colors.blue_2563eb</code>). Non-colliding clusters
+          keep clean scale names (<code>sm</code>, <code>md</code>, <code>blue</code>).
+        </p>
         <p>
           When <code>tokensImport</code> is set in your config, the needed import is injected
           into every edited file. See <a href="#config-tokens-import">Token import</a>.
@@ -346,8 +357,10 @@ function DocsContent() {
       <section>
         <Heading id="rule-colors">colors/hardcoded</Heading>
         <p>
-          Detects hardcoded color values in JSX style props, CSS, and SCSS files.
-          Catches hex (<code>#fff</code>), rgb/rgba, and hsl/hsla formats.
+          Detects hardcoded color values in JSX style props, CSS-in-JS tagged templates,
+          CSS, and SCSS files. Catches hex (<code>#fff</code>), rgb/rgba, and hsl/hsla
+          formats — including inside shorthand values like{' '}
+          <code>border: '1px solid #e4e4e7'</code>.
         </p>
         <Code colorize code={`// ✖ flagged\n<div style={{ color: '#1976D2' }} />\n\n// ✔ ok\n<div style={{ color: colors.primary }} />`} />
       </section>
@@ -450,11 +463,12 @@ function DocsContent() {
         <Heading id="config-tokens">Token mappings</Heading>
         <p>
           The <code>tokens</code> map powers the <code>token-bypass</code> rule. Each key is
-          a raw value, each value is the token name to suggest as a replacement. The codemod
-          reuses these mappings, so a mapped value is rewritten to <em>your</em> token name
+          a raw value, each value is the token name to suggest as a replacement. Bare numeric
+          or keyword font weights are accepted as keys too. The codemod reuses these mappings,
+          so a mapped value is rewritten to <em>your</em> token name
           (<code>colors.primary</code>) rather than an auto-generated one.
         </p>
-        <Code lang="js" code={`module.exports = {\n  tokens: {\n    '#1976D2': 'colors.primary',\n    '#D32F2F': 'colors.danger',\n    '#ffffff': 'colors.white',\n    '8px':     'spacing.sm',\n    '16px':    'spacing.md',\n  },\n}`} />
+        <Code lang="js" code={`module.exports = {\n  tokens: {\n    '#1976D2': 'colors.primary',\n    '#D32F2F': 'colors.danger',\n    '#ffffff': 'colors.white',\n    '8px':     'spacing.sm',\n    '16px':    'spacing.md',\n    '600':     'typography.semibold',\n  },\n}`} />
       </section>
 
       <section>
