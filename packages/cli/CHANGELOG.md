@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.15.0...remediation-v0.16.0) (2026-08-21)
+
+
+### Features
+
+* **cli:** close out pipeline limitations — AST-backed analyze, template codemod, shorthand props, readable auto names ([21b0e52](https://github.com/arnaudmanaranche/remediation/commit/21b0e529a35143187130e06a8464d97b06a92065))
+
 ## [0.15.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.14.0...remediation-v0.15.0) (2026-07-04)
 
 
