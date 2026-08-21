@@ -1,6 +1,10 @@
 export const COLOR_PROPS = new Set([
   'color', 'background', 'backgroundColor',
   'borderColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+  // Shorthand props: compound values ("1px solid #eee") whose primary design
+  // concern is color; sub-values are split by the shared value tokenizer.
+  'border', 'borderTop', 'borderRight', 'borderBottom', 'borderLeft',
+  'outline',
   'outlineColor', 'textDecorationColor', 'caretColor', 'columnRuleColor',
   'fill', 'stroke', 'stopColor', 'floodColor', 'lightingColor',
   'boxShadow', 'textShadow',

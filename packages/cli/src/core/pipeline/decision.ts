@@ -47,13 +47,19 @@ function displayName(ref: string): string {
 export function decideTokens(
   clusters: Cluster[],
   suggestedNames: Map<number, string>,
-  configTokens: Map<string, string> = new Map()
+  configTokens: Map<string, string> = new Map(),
+  configTypography: Map<string, string> = new Map()
 ): DecisionResult {
   const proposals: TokenProposal[] = [];
   let skippedClusters = 0;
 
   for (const cluster of clusters) {
-    const configRef = configTokens.get(cluster.canonical);
+    // Typography values (font sizes / weights) live in their own config map so
+    // a bare weight like '600' never collides with a length or color canonical.
+    const configRef =
+      cluster.type === 'typography'
+        ? configTypography.get(cluster.canonical)
+        : configTokens.get(cluster.canonical);
 
     // A value the user explicitly mapped in config is always proposed, even
     // below the frequency/size thresholds — they've already committed to it.

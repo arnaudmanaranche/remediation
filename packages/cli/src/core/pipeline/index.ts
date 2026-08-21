@@ -19,7 +19,12 @@ export function runPipeline(projectPath: string): PipelineResult {
   const normalization = normalizeAll(extraction);
   const clustering = clusterValues(normalization);
   const suggestedNames = getSuggestedNames(clustering);
-  const decision = decideTokens(clustering, suggestedNames, configTokens);
+  const decision = decideTokens(
+    clustering,
+    suggestedNames,
+    configTokens.byCanonical,
+    configTokens.typography
+  );
 
   return {
     extraction,
@@ -31,13 +36,20 @@ export function runPipeline(projectPath: string): PipelineResult {
 
 // Map the config `tokens` mapping (raw value → token reference) onto canonical
 // cluster values, so proposals reuse the names the user already declared.
-function buildConfigTokenMap(tokens?: Record<string, string>): Map<string, string> {
-  const map = new Map<string, string>();
+// Typography keys (bare numeric / keyword font weights) are tracked separately
+// so e.g. '600' can never collide with a length or color canonical.
+function buildConfigTokenMap(tokens?: Record<string, string>): {
+  byCanonical: Map<string, string>;
+  typography: Map<string, string>;
+} {
+  const map = { byCanonical: new Map<string, string>(), typography: new Map<string, string>() };
   if (!tokens) return map;
 
   for (const [value, ref] of Object.entries(tokens)) {
     const canon = toCanonical(value);
-    if (canon) map.set(canon.canonical, ref);
+    if (!canon) continue;
+    const target = canon.type === 'typography' ? map.typography : map.byCanonical;
+    target.set(canon.canonical, ref);
   }
 
   return map;

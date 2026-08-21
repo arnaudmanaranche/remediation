@@ -102,4 +102,14 @@ const el = (
     expect(result.some(v => v.rawValue === '#2563eb')).toBe(true);
     expect(result.some(v => v.rawValue === '8px')).toBe(true);
   });
+
+  it('extracts shorthand border/background/outline props', () => {
+    const result = tsx(`const s = {
+      border: '1px solid #e4e4e7',
+      background: '#fafafa',
+      outline: '2px solid transparent',
+    };`);
+    expect(result.map(v => v.cssProperty).sort()).toEqual(['background', 'border', 'outline']);
+    expect(result.find(v => v.cssProperty === 'border')!.rawValue).toBe('1px solid #e4e4e7');
+  });
 });

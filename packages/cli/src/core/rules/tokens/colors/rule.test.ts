@@ -48,4 +48,17 @@ describe('colors/hardcoded', () => {
     const result = colorsRule.detect(tsx('const x = 1;'));
     expect(result).toHaveLength(0);
   });
+
+  it('flags the color inside a shorthand border value', () => {
+    const result = colorsRule.detect(tsx("const s = { border: '1px solid #e4e4e7' }"));
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toContain('#e4e4e7');
+    expect(result[0].message).toContain('`border`');
+  });
+
+  it('flags the color inside a background shorthand value', () => {
+    const result = colorsRule.detect(tsx("const s = { background: 'rgba(0, 0, 0, 0.5)' }"));
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toContain('rgba');
+  });
 });

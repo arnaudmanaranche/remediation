@@ -92,6 +92,15 @@ describe('applyCodemod', () => {
     expect(out).toContain('boxShadow: `0 2px 4px ${colors.black}`');
   });
 
+  it('rewrites the color inside a shorthand border value', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ border: '1px solid #e4e4e7' }} />;`);
+    const gray = proposal('color', '#e4e4e7', file, { tokenRef: 'colors.gray200' });
+
+    applyCodemod(tmpDir, [gray], false);
+
+    expect(fs.readFileSync(file, 'utf-8')).toContain('border: `1px solid ${colors.gray200}`');
+  });
+
   it('maps every clustered member value to the cluster token', () => {
     const file = writeFile('C.tsx', `const el = <div style={{ borderRadius: '6px' }} />;`);
     // 6px is a non-canonical member snapped into the 8px cluster
@@ -168,9 +177,82 @@ describe('applyCodemod', () => {
     );
     const p = proposal('color', '#2563eb', file, { tokenRef: 'colors.primary' });
 
-    const result = applyCodemod(tmpDir, [p], false);
+    expect(applyCodemod(tmpDir, [p], false).warnings[0]).toContain('already exists');
+  });
 
-    expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0]).toContain('already exists');
+  describe('CSS-in-JS tagged templates', () => {
+    it('rewrites a whole-value color inside a styled template', () => {
+      const file = writeFile(
+        'S.tsx',
+        "const Btn = styled.div`color: #2563eb; padding: 8px;`;"
+      );
+      const color = proposal('color', '#2563eb', file, { tokenRef: 'colors.primary' });
+      const pad = proposal('spacing', '8px', file, { tokenRef: 'spacing.sm' });
+
+      applyCodemod(tmpDir, [color, pad], false);
+
+      expect(fs.readFileSync(file, 'utf-8')).toContain(
+        'styled.div`color: ${colors.primary}; padding: ${spacing.sm};`'
+      );
+    });
+
+    it('rewrites a compound value as an interpolation, preserving surrounding text', () => {
+      const file = writeFile('S.tsx', "const C = styled.div`border: 1px solid #e4e4e7;`;");
+      const gray = proposal('color', '#e4e4e7', file, { tokenRef: 'colors.gray200' });
+      const px = proposal('spacing', '1px', file, { tokenRef: 'spacing.px1' });
+
+      applyCodemod(tmpDir, [gray], false);
+
+      expect(fs.readFileSync(file, 'utf-8')).toContain(
+        'border: 1px solid ${colors.gray200};'
+      );
+    });
+
+    it('rewrites a typography declaration inside a template', () => {
+      const file = writeFile('S.tsx', "const T = styled.span`font-size: 14px;`;");
+      const typo = proposal('typography', '14px', file, { tokenName: 'sm' });
+
+      applyCodemod(tmpDir, [typo], false);
+
+      expect(fs.readFileSync(file, 'utf-8')).toContain('font-size: ${typography.sm};');
+    });
+
+    it('leaves existing interpolations untouched', () => {
+      const file = writeFile(
+        'S.tsx',
+        'const B = styled.div`color: ${props.theme}; padding: 8px;`;'
+      );
+      const pad = proposal('spacing', '8px', file, { tokenRef: 'spacing.sm' });
+
+      applyCodemod(tmpDir, [pad], false);
+
+      const out = fs.readFileSync(file, 'utf-8');
+      expect(out).toContain('color: ${props.theme};');
+      expect(out).toContain('padding: ${spacing.sm};');
+    });
+
+    it('does not touch non-styled tagged templates', () => {
+      const file = writeFile('S.tsx', 'const html = html`<b>8px</b>`;');
+      const pad = proposal('spacing', '8px', file, { tokenRef: 'spacing.sm' });
+
+      const result = applyCodemod(tmpDir, [pad], false);
+
+      expect(result.changes).toHaveLength(0);
+      expect(fs.readFileSync(file, 'utf-8')).toContain('<b>8px</b>');
+    });
+
+    it('handles multi-line templates with correct line numbers', () => {
+      const file = writeFile(
+        'S.tsx',
+        'const M = styled.div`\n  color: #2563eb;\n  padding: 8px;\n`;'
+      );
+      const color = proposal('color', '#2563eb', file, { tokenRef: 'colors.primary' });
+
+      const result = applyCodemod(tmpDir, [color], false);
+
+      expect(result.changes).toHaveLength(1);
+      expect(result.changes[0].line).toBe(2);
+      expect(fs.readFileSync(file, 'utf-8')).toContain('color: ${colors.primary};');
+    });
   });
 });

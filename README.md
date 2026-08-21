@@ -258,16 +258,19 @@ module.exports = {
 };
 ```
 
-The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement. The codemod reuses these mappings, so `#1976D2` is rewritten to `colors.primary` (your name) rather than an auto-generated one.
+The `tokens` map powers the `token-bypass` rule: when a hardcoded value matches a key, the rule flags it and suggests the token name as a replacement. The codemod reuses these mappings, so `#1976D2` is rewritten to `colors.primary` (your name) rather than an auto-generated one. Bare numeric or keyword font weights are also accepted as keys (e.g. `'600': 'typography.semibold'`).
 
 ### Codemod behavior
 
 `analyze --codemod` rewrites hardcoded values to token references by editing the source in place (it never regenerates or reformats your files):
 
 - **Whole-value literals** become bare references: `'#1976D2'` → `colors.primary`.
-- **Compound and shorthand values** become template literals, preserving the surrounding text: `'8px 16px'` → `` `${spacing.sm} ${spacing.md}` ``, `'0 2px 4px #000000'` → `` `0 2px 4px ${colors.black}` ``.
+- **Compound and shorthand values** become template literals, preserving the surrounding text: `'8px 16px'` → `` `${spacing.sm} ${spacing.md}` ``, `'0 2px 4px #000000'` → `` `0 2px 4px ${colors.black}` ``, `'1px solid #e4e4e7'` → `` `1px solid ${colors.gray200}` ``. Shorthand props (`border`, `background`, `outline`) are recognized.
+- **CSS-in-JS tagged templates** (`styled.div\`...\``, `css\`...\``) are rewritten in place — matched values become `${...}` interpolations and existing interpolations are left untouched.
 - **Typography** is handled too, including numeric weights: `fontSize: '14px'` → `typography.sm`, `fontWeight: 600` → `typography.semibold`.
 - **Imports** for the token roots used (`colors`, `spacing`, `typography`, …) are injected from `tokensImport` when configured.
+
+Auto-generated token names encode their value when two clusters would collide on the same scale name (`spacing.md_16` / `spacing.md_15`, `colors.blue_2563eb`), so names stay readable and stable across runs; non-colliding clusters keep clean scale names (`sm`, `md`, `blue`).
 
 Preview with `--codemod`; write changes with `--codemod --no-dry-run`.
 

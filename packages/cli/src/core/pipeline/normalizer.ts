@@ -142,14 +142,29 @@ export function normalizeAll(values: any[]): NormalizedValue[] {
   return values.map(normalizeValue).filter((v): v is NormalizedValue => v !== null);
 }
 
-// Reduce a raw config value (e.g. "#2563EB", "8px", "0.5rem") to the same
-// canonical form used by clusters, so config token mappings can be matched.
-export function toCanonical(raw: string): { canonical: string; type: 'color' | 'spacing' } | null {
+// A bare font-weight value: numeric ("400", "600") or keyword (bold, normal).
+function normalizeTypoWeight(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === 'bold' || trimmed === 'normal') return trimmed;
+  if (/^\d+$/.test(trimmed)) return trimmed;
+  return null;
+}
+
+// Reduce a raw config value (e.g. "#2563EB", "8px", "0.5rem", "600") to the
+// same canonical form used by clusters, so config token mappings can be
+// matched. Bare numbers are treated as font weights — length keys always carry
+// a unit.
+export function toCanonical(
+  raw: string
+): { canonical: string; type: 'color' | 'spacing' | 'typography' } | null {
   const color = normalizeColor(raw);
   if (color) return { canonical: color.canonical, type: 'color' };
 
   const spacing = normalizeSpacing(raw);
   if (spacing) return { canonical: spacing.canonical, type: 'spacing' };
+
+  const weight = normalizeTypoWeight(raw);
+  if (weight) return { canonical: weight, type: 'typography' };
 
   return null;
 }

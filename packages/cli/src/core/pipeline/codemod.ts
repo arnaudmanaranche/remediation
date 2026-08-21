@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as parser from '@babel/parser';
 import { TokenProposal } from './decision';
 import { toCanonical } from './normalizer';
+import { splitValueTokens } from './valueTokenizer';
 import { ALL_STYLE_PROPS, TYPOGRAPHY_PROPS } from '../ast/cssProperties';
 import { loadConfig } from '../config';
 
@@ -108,8 +109,9 @@ function buildLookups(proposals: TokenProposal[]): Lookups {
   return { value, typography };
 }
 
-// Individual color/length tokens inside a (possibly compound) CSS value string.
-const VALUE_TOKEN_REGEX = /#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|\d+(?:\.\d+)?(?:px|rem|em)/g;
+// Individual color/length tokens inside a (possibly compound) CSS value string
+// are located with the shared tokenizer (`valueTokenizer.ts`), also used by the
+// analyze extractor so extraction and rewriting stay in lockstep.
 
 interface BuiltExpression {
   expr: string;
@@ -122,14 +124,12 @@ interface BuiltExpression {
 // surrounding text (e.g. "solid", "0 1px 3px") is preserved.
 function buildExpression(raw: string, lookup: Map<string, string>): BuiltExpression | null {
   const matches: { start: number; end: number; ref: string }[] = [];
-  const re = new RegExp(VALUE_TOKEN_REGEX.source, 'g');
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(raw)) !== null) {
-    const canon = toCanonical(m[0]);
+  for (const tok of splitValueTokens(raw)) {
+    const canon = toCanonical(tok.text);
     if (!canon) continue;
     const ref = lookup.get(canon.canonical);
     if (!ref) continue;
-    matches.push({ start: m.index, end: m.index + m[0].length, ref });
+    matches.push({ start: tok.start, end: tok.end, ref });
   }
 
   if (matches.length === 0) return null;
@@ -183,6 +183,18 @@ function importAnchor(ast: AstNode): { pos: number; leadingNewline: boolean } {
   return { pos: 0, leadingNewline: false };
 }
 
+// Mirrors the styled/css detection in ast/extractor.ts so the codemod rewrites
+// exactly what the scan-side extractor reads.
+const STYLED_IDENTIFIER_TAGS = new Set(['css', 'injectGlobal', 'createGlobalStyle']);
+
+function isStyledTag(tag: AstNode): boolean {
+  return (
+    tag.type === 'MemberExpression' ||
+    tag.type === 'CallExpression' ||
+    (tag.type === 'Identifier' && STYLED_IDENTIFIER_TAGS.has(tag.name as string))
+  );
+}
+
 function collectFileWork(content: string, lookups: Lookups): FileWork | null {
   let ast: AstNode;
   try {
@@ -194,6 +206,28 @@ function collectFileWork(content: string, lookups: Lookups): FileWork | null {
   const edits: Edit[] = [];
   const changes: CodemodChange[] = [];
   const roots = new Set<string>();
+
+  // Record an offset edit inside a tagged-template quasi, turning `oldText`
+  // into `${ref}`. Offsets are absolute in the file.
+  const recordSubValue = (
+    absStart: number,
+    absEnd: number,
+    oldText: string,
+    line: number,
+    column: number,
+    ref: string
+  ) => {
+    edits.push({ start: absStart, end: absEnd, text: `\${${ref}}` });
+    roots.add(ref.split('.')[0]);
+    changes.push({
+      file: '', // filled in by caller
+      line,
+      column,
+      oldValue: oldText,
+      newValue: `\${${ref}}`,
+      tokenName: ref,
+    });
+  };
 
   const record = (value: AstNode, expr: string, refs: string[]) => {
     edits.push({ start: value.start!, end: value.end!, text: expr });
@@ -208,7 +242,81 @@ function collectFileWork(content: string, lookups: Lookups): FileWork | null {
     });
   };
 
+  // Rewrite tokenizable sub-values inside one tagged-template quasi
+  // (styled.div`...`, css`...`). Declaration scanning mirrors the scan-side
+  // extractFromTemplateLiteral so the codemod rewrites exactly what was
+  // extracted. Quasis never contain ${...} expression text (those are separate
+  // AST nodes), so absolute offsets computed from quasi.start cannot overlap
+  // existing interpolations — but a declaration may be *split* across quasis
+  // by one ("color: ${x}; padding: 8px;"), hence the unanchored global scan.
+  const DECL_REGEX = /(^|[\s;{])([\w-]+)\s*:\s*([^;{}\n]+)/g;
+
+  const lineAt = (text: string, offset: number) =>
+    text.slice(0, offset).split('\n').length;
+
+  const processQuasi = (quasi: AstNode) => {
+    const cooked = (quasi.value as { cooked?: string } | undefined)?.cooked;
+    if (typeof cooked !== 'string' || typeof quasi.start !== 'number') return;
+
+    const baseLoc = quasi.loc?.start;
+    const abs = (offsetInCooked: number) => quasi.start! + offsetInCooked;
+    const columnOf = (offsetInCooked: number): number => {
+      if (!baseLoc) return offsetInCooked + 1;
+      const lastNewline = cooked.lastIndexOf('\n', offsetInCooked - 1);
+      return lastNewline === -1
+        ? baseLoc.column + offsetInCooked + 1
+        : offsetInCooked - lastNewline;
+    };
+
+    const re = new RegExp(DECL_REGEX.source, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(cooked)) !== null) {
+      const rawProp = m[2];
+      const propName = rawProp.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+      if (!ALL_STYLE_PROPS.has(propName)) continue;
+
+      const valueRaw = m[3];
+      const v = valueRaw.trim();
+      if (!v) continue;
+      // The value group always runs to the end of the match.
+      const vOffset = m.index + m[0].length - valueRaw.length;
+      const trimLead = valueRaw.length - valueRaw.trimStart().length;
+      const vTrimOffset = vOffset + trimLead;
+
+      // Typography declarations are whole-value tokens.
+      if (TYPOGRAPHY_PROPS.has(propName)) {
+        const ref = lookups.typography.get(v);
+        if (!ref) continue;
+        recordSubValue(abs(vTrimOffset), abs(vTrimOffset + v.length), v, lineAt(cooked, vTrimOffset), columnOf(vTrimOffset), ref);
+        continue;
+      }
+
+      for (const tok of splitValueTokens(v)) {
+        const canon = toCanonical(tok.text);
+        if (!canon) continue;
+        const ref = lookups.value.get(canon.canonical);
+        if (!ref) continue;
+        recordSubValue(
+          abs(vTrimOffset + tok.start),
+          abs(vTrimOffset + tok.end),
+          tok.text,
+          lineAt(cooked, vTrimOffset + tok.start),
+          columnOf(vTrimOffset + tok.start),
+          ref
+        );
+      }
+    }
+  };
+
   walk(ast, (node) => {
+    // --- Tagged templates: styled.div`color: #fff;` / css`...` ---
+    if (node.type === 'TaggedTemplateExpression') {
+      if (!isStyledTag(node.tag as AstNode)) return;
+      const quasis = ((node.quasi as AstNode).quasis as AstNode[]) || [];
+      for (const q of quasis) processQuasi(q);
+      return;
+    }
+
     if (node.type !== 'ObjectProperty') return;
     const key = node.key as AstNode;
     const value = node.value as AstNode;

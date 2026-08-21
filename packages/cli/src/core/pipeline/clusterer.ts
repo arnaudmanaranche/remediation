@@ -236,31 +236,64 @@ export function clusterValues(values: NormalizedValue[]): Cluster[] {
   return clusters;
 }
 
-export function getSuggestedNames(clusters: Cluster[]): Map<number, string> {
-  const names = new Map<number, string>();
+// The distinguishing part appended to an auto name when two clusters collide
+// on the same base scale name (e.g. both spacing 15px and 16px bucket to 'md').
+// Encodes the actual value instead of a meaningless counter, so names are
+// self-describing and independent of cluster order. Joined with '_' (not '-')
+// because generated names are emitted as bare `spacing.md_16` references, where
+// a hyphen would parse as subtraction.
+function collisionSuffix(cluster: Cluster): string {
+  const c = cluster.canonical;
 
-  const colorCounts = new Map<string, number>();
-  const spacingCounts = new Map<string, number>();
-  const typographyCounts = new Map<string, number>();
+  if (cluster.type === 'color') return c.replace('#', '');
+
+  if (cluster.type === 'spacing') return String(parseFloat(c));
+
+  // Typography: normalize a size to px; keep weights as-is ('400' vs 'normal').
+  const sizeMatch = c.match(/^(\d+(?:\.\d+)?)(px|rem|em)$/);
+  if (sizeMatch) {
+    let px = parseFloat(sizeMatch[1]);
+    if (sizeMatch[2] !== 'px') px *= 16;
+    return String(px);
+  }
+  return c.toLowerCase();
+}
+
+export function getSuggestedNames(clusters: Cluster[]): Map<number, string> {
+  const baseNames = new Map<number, string>();
+  const byBase = new Map<string, Cluster[]>();
 
   for (const cluster of clusters) {
-    if (cluster.type === 'color') {
-      const name = suggestName(cluster);
-      const count = colorCounts.get(name) || 0;
-      colorCounts.set(name, count + 1);
-      names.set(cluster.id, count > 0 ? `${name}${count + 1}` : name);
-    } else if (cluster.type === 'spacing') {
-      const name = suggestName(cluster);
-      const count = spacingCounts.get(name) || 0;
-      spacingCounts.set(name, count + 1);
-      names.set(cluster.id, count > 0 ? `${name}${count + 1}` : name);
-    } else if (cluster.type === 'typography') {
-      const name = suggestName(cluster);
-      const count = typographyCounts.get(name) || 0;
-      typographyCounts.set(name, count + 1);
-      names.set(cluster.id, count > 0 ? `${name}${count + 1}` : name);
-    } else {
-      names.set(cluster.id, 'unknown');
+    const name = suggestName(cluster);
+    baseNames.set(cluster.id, name);
+    const key = `${cluster.type}:${name}`;
+    const group = byBase.get(key) || [];
+    group.push(cluster);
+    byBase.set(key, group);
+  }
+
+  const names = new Map<number, string>();
+  for (const group of byBase.values()) {
+    const base = baseNames.get(group[0].id)!;
+    const candidates = new Map<number, string>();
+    const counts = new Map<string, number>();
+
+    for (const cluster of group) {
+      // A lone occupant keeps the clean scale name; collisions encode the value
+      // (spacing.md-15 / colors.blue-2563eb) rather than a counter (md2).
+      const name = group.length === 1 ? base : `${base}_${collisionSuffix(cluster)}`;
+      candidates.set(cluster.id, name);
+      counts.set(name, (counts.get(name) || 0) + 1);
+    }
+
+    for (const cluster of group) {
+      let name = candidates.get(cluster.id)!;
+      if (counts.get(name)! > 1) {
+        // Value suffixes still collide (e.g. '14px' vs its '0.875rem'
+        // equivalent) — fall back to the raw canonical for uniqueness.
+        name = `${base}_${cluster.canonical.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+      }
+      names.set(cluster.id, name);
     }
   }
 
