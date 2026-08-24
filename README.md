@@ -81,7 +81,7 @@ Detect hardcoded values that should be replaced with design tokens. Comments and
 
 | Rule | Description |
 |------|-------------|
-| `colors/hardcoded` | Detects hardcoded color values (hex, rgb, hsl) |
+| `colors/hardcoded` | Detects hardcoded color values (hex, rgb, hsl), including inside shorthand values like `border: '1px solid #e4e4e7'` and CSS-in-JS tagged templates |
 | `spacing/hardcoded` | Detects hardcoded spacing values (px, rem, em) |
 | `typography/hardcoded` | Detects hardcoded font sizes and weights |
 | `radius/hardcoded` | Detects hardcoded border-radius values |

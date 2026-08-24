@@ -26,3 +26,6 @@ documentation-dump layouts.
 
 The `impeccable` skill (`.agents/impeccable/`, `.claude/skills/impeccable`) is
 available for UI work; past critiques are stored under `.impeccable/critique/`.
+A `remediation` usage skill (`.claude/skills/remediation/SKILL.md`) teaches
+agents to drive the CLI on design drift — keep it in sync with user-facing CLI
+behavior.

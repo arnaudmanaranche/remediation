@@ -12,9 +12,9 @@ The docs surface is secondary: users already convinced who come back for configu
 
 ## Product Purpose
 
-remediation is a CLI that scans React codebases for design system drift — hardcoded values that bypass tokens, near-duplicate components, token-bypass patterns. It outputs a 0–100 health score and a full violation list. It fits into CI with exit code 1 on errors.
+remediation is a CLI that scans React codebases for design system drift — hardcoded values that bypass tokens, near-duplicate components, token-bypass patterns. It outputs a 0–100 health score and a full violation list, and can go further than reporting: its analyze pipeline proposes a token set extracted from the codebase and a codemod that rewrites hardcoded values into token references in place. It fits into CI with exit code 1 on errors.
 
-Success: a developer runs `npx remediation scan`, sees violations they recognize, understands the rules in under two minutes, and adds it to their project.
+Success: a developer runs `npx remediation scan`, sees violations they recognize, understands the rules in under two minutes, and adds it to their project — then lets the codemod clear the backlog without hand-editing files.
 
 ## Brand Personality
 

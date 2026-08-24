@@ -18,7 +18,7 @@ _Avoid_: transform, patch, fixer
 
 **Token**:
 A named design primitive (color, spacing, typography, radius, shadow) defined in the design system.
-_Aavoid_: style, value, constant
+_Avoid_: style, value, constant
 
 **Design System**:
 The set of tokens, components, and conventions that a project is expected to follow.
