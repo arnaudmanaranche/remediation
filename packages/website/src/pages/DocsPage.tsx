@@ -11,6 +11,7 @@ const SIDEBAR = [
       { id: 'introduction',  label: 'Introduction' },
       { id: 'installation',  label: 'Installation' },
       { id: 'quick-start',   label: 'Quick start' },
+      { id: 'getting-agents', label: 'Install for coding agents' },
     ],
   },
   {
@@ -49,12 +50,6 @@ const SIDEBAR = [
     items: [
       { id: 'ci-github',   label: 'GitHub Actions' },
       { id: 'ci-baseline', label: 'Baseline mode' },
-    ],
-  },
-  {
-    title: 'AI agents',
-    items: [
-      { id: 'agents-skill', label: 'Agent skill' },
     ],
   },
   {
@@ -275,6 +270,37 @@ function DocsContent() {
         <Code code="npx remediation init" />
         <p>Run token-only rules:</p>
         <Code code="npx remediation tokens ./src" />
+      </section>
+
+      {/* ── Install for coding agents ───────────── */}
+      <section>
+        <Heading id="getting-agents">Install for coding agents</Heading>
+        <p>
+          Install the <code>remediation</code> skill so your AI coding agent knows how to run
+          the CLI as part of its workflow: scanning for drift before it finishes a task,
+          proposing a token set, and rewriting hardcoded values with the codemod — preview
+          first, apply only after review.
+        </p>
+        <p>Install from your project root. Works across 75+ agents (Claude Code, opencode,
+        Cursor, Codex, Copilot, Gemini CLI, and more):</p>
+        <Code code="npx skills add arnaudmanaranche/remediation" />
+        <p>The installer detects which agents you have and offers a target for each.
+        Prefer to scope it to one agent?</p>
+        <Code code={`# Claude Code only\nnpx skills add arnaudmanaranche/remediation -a claude-code\n\n# Project-wide instead of user-global\nnpx skills add arnaudmanaranche/remediation -g`} />
+        <p>As a Claude Code plugin marketplace:</p>
+        <Code code={`/plugin marketplace add arnaudmanaranche/remediation\n/plugin install remediation@remediation`} />
+        <h3>What the skill teaches your agent</h3>
+        <p>
+          The skill encodes the safe workflow rather than a single command: read any existing{' '}
+          <code>remediation.config.js</code> first, run a scan before proposing changes,
+          configure human-readable token names, always dry-run the codemod before applying,
+          and verify the resulting diff (token-reference swaps plus injected imports — nothing
+          else). It also flags what deserves extra review, like shadow rewrites where an{' '}
+          <code>rgba()</code> alpha can be lost.
+        </p>
+        <h3>Manual install</h3>
+        <p>No installer? Copy the single skill file into your project:</p>
+        <Code code={`curl -o .claude/skills/remediation/SKILL.md \\\n  https://raw.githubusercontent.com/arnaudmanaranche/remediation/main/.claude/skills/remediation/SKILL.md`} />
       </section>
 
       {/* ── Commands ────────────────────────────── */}
@@ -513,31 +539,6 @@ function DocsContent() {
           <code>--ignore-baseline</code>:
         </p>
         <Code code="npx remediation scan --ignore-baseline" />
-      </section>
-
-      {/* ── AI agents ───────────────────────────── */}
-      <section>
-        <Heading id="agents-skill">Agent skill</Heading>
-        <p>
-          The repo ships a skill that teaches AI coding agents (Claude Code, opencode) how to
-          drive remediation well: scan first, read the health score, configure token names,
-          preview the codemod, apply it, and verify the diff — including what a correct
-          rewrite looks like and which lines deserve extra review.
-        </p>
-        <p>
-          The repo is also a Claude Code plugin marketplace — the two-command install:
-        </p>
-        <Code code={`/plugin marketplace add arnaudmanaranche/remediation\n/plugin install remediation@remediation`} />
-        <p>
-          Or copy it manually into your project to make it available to your agent:
-        </p>
-        <Code code={`# from the remediation repo\ncurl -o .claude/skills/remediation/SKILL.md \\\n  https://raw.githubusercontent.com/arnaudmanaranche/remediation/main/.claude/skills/remediation/SKILL.md`} />
-        <p>
-          Once present at <code>.claude/skills/remediation/SKILL.md</code>, the agent picks it
-          up automatically whenever you ask for design-drift work ("tokenize this repo",
-          "why is my codebase failing design review?") — and stays out of the way for
-          everything else.
-        </p>
       </section>
 
       {/* ── Privacy ─────────────────────────────── */}

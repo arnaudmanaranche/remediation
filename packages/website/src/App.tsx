@@ -38,6 +38,7 @@ const FAQ_ITEMS = [
 export default function App() {
   return (
     <div className="page">
+      <Banner />
       <Nav />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -45,6 +46,16 @@ export default function App() {
         <Route path="/docs/*" element={<DocsPage />} />
       </Routes>
     </div>
+  )
+}
+
+function Banner() {
+  return (
+    <Link to="/docs#getting-agents" className="banner">
+      <span className="banner-badge">NEW</span>
+      <span className="banner-text">Your AI coding agent can now fix design drift for you</span>
+      <span className="banner-cta">Install the skill →</span>
+    </Link>
   )
 }
 
