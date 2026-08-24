@@ -28,4 +28,7 @@ The `impeccable` skill (`.agents/impeccable/`, `.claude/skills/impeccable`) is
 available for UI work; past critiques are stored under `.impeccable/critique/`.
 A `remediation` usage skill (`.claude/skills/remediation/SKILL.md`) teaches
 agents to drive the CLI on design drift — keep it in sync with user-facing CLI
-behavior.
+behavior. The same skill ships as a Claude Code plugin
+(`plugins/remediation/`, listed in the root `.claude-plugin/marketplace.json`,
+installable via `/plugin marketplace add arnaudmanaranche/remediation`) — when
+editing the SKILL.md, update **both** copies.

@@ -524,7 +524,13 @@ function DocsContent() {
           preview the codemod, apply it, and verify the diff — including what a correct
           rewrite looks like and which lines deserve extra review.
         </p>
-        <p>Copy it into your project to make it available to your agent:</p>
+        <p>
+          The repo is also a Claude Code plugin marketplace — the two-command install:
+        </p>
+        <Code code={`/plugin marketplace add arnaudmanaranche/remediation\n/plugin install remediation@remediation`} />
+        <p>
+          Or copy it manually into your project to make it available to your agent:
+        </p>
         <Code code={`# from the remediation repo\ncurl -o .claude/skills/remediation/SKILL.md \\\n  https://raw.githubusercontent.com/arnaudmanaranche/remediation/main/.claude/skills/remediation/SKILL.md`} />
         <p>
           Once present at <code>.claude/skills/remediation/SKILL.md</code>, the agent picks it

@@ -1,0 +1,11 @@
+{
+  "name": "remediation",
+  "description": "Eliminate design-system drift with the remediation CLI: detect hardcoded colors/spacing/typography/radius/shadows, extract a token set, and rewrite sources to token references with a safe, previewable codemod.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arnaud Manaranche"
+  },
+  "homepage": "https://remediation.dev",
+  "repository": "https://github.com/arnaudmanaranche/remediation",
+  "keywords": ["design-system", "design-tokens", "react", "codemod", "linter"]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "remediation",
+  "owner": {
+    "name": "Arnaud Manaranche",
+    "url": "https://github.com/arnaudmanaranche"
+  },
+  "description": "Skills for driving the remediation design-system CLI: scan for hardcoded values, extract tokens, and apply safe codemods.",
+  "plugins": [
+    {
+      "name": "remediation",
+      "source": "./plugins/remediation",
+      "description": "Teaches agents to eliminate design-system drift with the remediation CLI: scan for hardcoded values, read the health score, configure tokens, and apply codemods safely."
+    }
+  ]
+}
