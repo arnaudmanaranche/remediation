@@ -52,6 +52,12 @@ const SIDEBAR = [
     ],
   },
   {
+    title: 'AI agents',
+    items: [
+      { id: 'agents-skill', label: 'Agent skill' },
+    ],
+  },
+  {
     title: 'Privacy',
     items: [
       { id: 'telemetry', label: 'Telemetry' },
@@ -507,6 +513,25 @@ function DocsContent() {
           <code>--ignore-baseline</code>:
         </p>
         <Code code="npx remediation scan --ignore-baseline" />
+      </section>
+
+      {/* ── AI agents ───────────────────────────── */}
+      <section>
+        <Heading id="agents-skill">Agent skill</Heading>
+        <p>
+          The repo ships a skill that teaches AI coding agents (Claude Code, opencode) how to
+          drive remediation well: scan first, read the health score, configure token names,
+          preview the codemod, apply it, and verify the diff — including what a correct
+          rewrite looks like and which lines deserve extra review.
+        </p>
+        <p>Copy it into your project to make it available to your agent:</p>
+        <Code code={`# from the remediation repo\ncurl -o .claude/skills/remediation/SKILL.md \\\n  https://raw.githubusercontent.com/arnaudmanaranche/remediation/main/.claude/skills/remediation/SKILL.md`} />
+        <p>
+          Once present at <code>.claude/skills/remediation/SKILL.md</code>, the agent picks it
+          up automatically whenever you ask for design-drift work ("tokenize this repo",
+          "why is my codebase failing design review?") — and stays out of the way for
+          everything else.
+        </p>
       </section>
 
       {/* ── Privacy ─────────────────────────────── */}
