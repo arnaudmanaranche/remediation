@@ -204,8 +204,8 @@ function GettingStartedPage() {
           <code>remediation.config.js</code> first, run a scan before proposing changes,
           configure human-readable token names, always dry-run the codemod before applying,
           and verify the resulting diff (token-reference swaps plus injected imports — nothing
-          else). It also flags what deserves extra review, like shadow rewrites where an{' '}
-          <code>rgba()</code> alpha can be lost.
+          else). It also knows what the codemod deliberately leaves alone, like translucent{' '}
+          <code>rgba()</code> values that can't be expressed by an opaque token.
         </p>
         <h3>Manual install</h3>
         <p>No installer? Copy the single skill file into your project:</p>

@@ -101,6 +101,41 @@ describe('applyCodemod', () => {
     expect(fs.readFileSync(file, 'utf-8')).toContain('border: `1px solid ${colors.gray200}`');
   });
 
+  it('never rewrites a translucent rgba() to an opaque token', () => {
+    const file = writeFile(
+      'C.tsx',
+      `const el = <div style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)' }} />;`
+    );
+    const black = proposal('color', '#000000', file, { tokenRef: 'colors.black' });
+
+    const result = applyCodemod(tmpDir, [black], false);
+
+    expect(result.changes).toHaveLength(0);
+    expect(fs.readFileSync(file, 'utf-8')).toContain('rgba(0, 0, 0, 0.12)');
+  });
+
+  it('still rewrites fully opaque rgba()/rgb() values', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ backgroundColor: 'rgba(37, 99, 235, 1)' }} />;`);
+    const primary = proposal('color', '#2563eb', file, { tokenRef: 'colors.primary' });
+
+    applyCodemod(tmpDir, [primary], false);
+
+    expect(fs.readFileSync(file, 'utf-8')).toContain('backgroundColor: colors.primary');
+  });
+
+  it('leaves translucent values inside tagged templates untouched', () => {
+    const file = writeFile(
+      'S.tsx',
+      'const S = styled.div`box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);`;'
+    );
+    const black = proposal('color', '#000000', file, { tokenRef: 'colors.black' });
+
+    const result = applyCodemod(tmpDir, [black], false);
+
+    expect(result.changes).toHaveLength(0);
+    expect(fs.readFileSync(file, 'utf-8')).toContain('rgba(0, 0, 0, 0.5)');
+  });
+
   it('maps every clustered member value to the cluster token', () => {
     const file = writeFile('C.tsx', `const el = <div style={{ borderRadius: '6px' }} />;`);
     // 6px is a non-canonical member snapped into the 8px cluster

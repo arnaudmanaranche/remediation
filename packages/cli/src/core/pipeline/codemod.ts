@@ -118,6 +118,19 @@ interface BuiltExpression {
   refs: string[]; // full references used, e.g. ['colors.primary']
 }
 
+// A translucent color (rgba()/hsla() with alpha < 1) can't be represented by an
+// opaque token — rewriting it would silently change the rendered output (e.g.
+// a 12%-black shadow becoming solid black), so those sub-values are left as-is.
+function isTransparentColor(token: string): boolean {
+  const m = token.trim().match(/^(?:rgba|hsla)\(([^)]*)\)$/i);
+  if (!m) return false;
+  const parts = m[1].split(/[,\s/]+/).filter(Boolean);
+  const alpha = parts[parts.length - 1];
+  if (!alpha) return false;
+  if (alpha.endsWith('%')) return alpha !== '100%';
+  return parseFloat(alpha) !== 1;
+}
+
 // Turn a raw CSS value string into a JS expression that swaps every matched
 // sub-value for its token reference. A value that is *entirely* one token
 // becomes a bare reference; a compound value becomes a template literal so the
@@ -125,6 +138,7 @@ interface BuiltExpression {
 function buildExpression(raw: string, lookup: Map<string, string>): BuiltExpression | null {
   const matches: { start: number; end: number; ref: string }[] = [];
   for (const tok of splitValueTokens(raw)) {
+    if (isTransparentColor(tok.text)) continue;
     const canon = toCanonical(tok.text);
     if (!canon) continue;
     const ref = lookup.get(canon.canonical);
@@ -292,6 +306,7 @@ function collectFileWork(content: string, lookups: Lookups): FileWork | null {
       }
 
       for (const tok of splitValueTokens(v)) {
+        if (isTransparentColor(tok.text)) continue;
         const canon = toCanonical(tok.text);
         if (!canon) continue;
         const ref = lookups.value.get(canon.canonical);

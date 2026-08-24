@@ -35,7 +35,7 @@ Known rewriting behavior (expected in diffs):
 - CSS-in-JS tagged templates (`styled.div\`...\``, `css\`...\``) are rewritten in place; existing `${...}` interpolations are never touched.
 - Typography includes numeric weights (`fontWeight: 600` → `typography.semibold`).
 - Clustered near-values snap to their cluster token (a one-off `3px` clustered with `4px` may be rewritten to the `xs` token whose canonical differs slightly).
-- **Inspect shadow/gradient rewrites closely**: an `rgba()` with alpha is canonicalized to its opaque hex, so `rgba(0, 0, 0, 0.12)` can be rewritten to a plain black token — visually different. Eyeball those lines specifically during step 5's diff.
+- **Translucent colors stay untouched**: `rgba()`/`hsla()` values with alpha < 1 are never rewritten to an opaque token (that would change the rendered output) — expect them to remain hardcoded in the diff.
 - Values below the proposal threshold (single occurrences, low confidence) are left untouched — a codemod pass won't reach 100%; iterate or pin names via config `tokens`.
 
 ## Interpreting results
