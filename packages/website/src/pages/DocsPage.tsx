@@ -200,31 +200,35 @@ export function DocsPage() {
         <DocsContent />
       </article>
 
-      {/* Right TOC — grouped to mirror sidebar structure */}
+      {/* Right TOC — only the entries of the current main section */}
       <aside className="docs-toc">
         <span className="docs-toc-title">On this page</span>
-        {SIDEBAR.map(section => (
-          <div key={section.title} className="docs-toc-group">
-            <span className="docs-toc-group-label">{section.title}</span>
-            {section.items.map(item => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className={`docs-toc-link ${activeId === item.id ? 'docs-toc-active' : ''}`}
-                onClick={e => {
-                  e.preventDefault()
-                  scrollingRef.current = true
-                  setActiveId(item.id)
-                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  history.replaceState(null, '', `/docs#${item.id}`)
-                  setTimeout(() => { scrollingRef.current = false }, 900)
-                }}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        ))}
+        {(() => {
+          const current =
+            SIDEBAR.find(section => section.items.some(item => item.id === activeId)) ?? SIDEBAR[0]
+          return (
+            <div className="docs-toc-group">
+              <span className="docs-toc-group-label">{current.title}</span>
+              {current.items.map(item => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`docs-toc-link ${activeId === item.id ? 'docs-toc-active' : ''}`}
+                  onClick={e => {
+                    e.preventDefault()
+                    scrollingRef.current = true
+                    setActiveId(item.id)
+                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    history.replaceState(null, '', `/docs#${item.id}`)
+                    setTimeout(() => { scrollingRef.current = false }, 900)
+                  }}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          )
+        })()}
       </aside>
     </div>
   )
