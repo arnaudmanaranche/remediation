@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.1](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.16.0...remediation-v0.16.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **cli:** never rewrite translucent rgba()/hsla() values to opaque tokens ([c4cb10b](https://github.com/arnaudmanaranche/remediation/commit/c4cb10bb20909c09e5ceadee831337456462c7d2))
+* **cli:** preserve translucent colors in the codemod + package README ([44799b9](https://github.com/arnaudmanaranche/remediation/commit/44799b918a077eb7d11f75071d604e8ea23f3ac4))
+
 ## [0.16.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.15.0...remediation-v0.16.0) (2026-08-21)
 
 
