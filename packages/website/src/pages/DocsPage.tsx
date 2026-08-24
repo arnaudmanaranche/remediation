@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import type { ComponentType } from 'react'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import './DocsPage.css'
 
-// ── Sidebar nav structure ────────────────────────────────────────────────────
+// ── Nav structure — each entry is its own routed page ────────────────────────
 
-const SIDEBAR = [
+const SECTIONS = [
   {
+    slug: 'getting-started',
     title: 'Getting started',
     items: [
       { id: 'introduction',  label: 'Introduction' },
@@ -15,6 +17,7 @@ const SIDEBAR = [
     ],
   },
   {
+    slug: 'commands',
     title: 'Commands',
     items: [
       { id: 'cmd-scan',     label: 'scan' },
@@ -24,6 +27,7 @@ const SIDEBAR = [
     ],
   },
   {
+    slug: 'rules',
     title: 'Rules',
     items: [
       { id: 'rule-colors',     label: 'colors/hardcoded' },
@@ -36,6 +40,7 @@ const SIDEBAR = [
     ],
   },
   {
+    slug: 'configuration',
     title: 'Configuration',
     items: [
       { id: 'config-file',     label: 'Config file' },
@@ -46,6 +51,7 @@ const SIDEBAR = [
     ],
   },
   {
+    slug: 'ci-cd',
     title: 'CI / CD',
     items: [
       { id: 'ci-github',   label: 'GitHub Actions' },
@@ -53,12 +59,15 @@ const SIDEBAR = [
     ],
   },
   {
+    slug: 'privacy',
     title: 'Privacy',
     items: [
       { id: 'telemetry', label: 'Telemetry' },
     ],
   },
-]
+] as const
+
+type SectionSlug = typeof SECTIONS[number]['slug']
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -112,6 +121,7 @@ function FlagTable({ flags }: { flags: [string, string][] }) {
 
 function Heading({ id, level = 2, children }: { id: string; level?: 1 | 2 | 3; children: React.ReactNode }) {
   const Tag = `h${level}` as 'h1' | 'h2' | 'h3'
+  const pathname = useLocation().pathname
   return (
     <Tag id={id} className="docs-heading">
       {children}
@@ -121,7 +131,7 @@ function Heading({ id, level = 2, children }: { id: string; level?: 1 | 2 | 3; c
         aria-label="Link to section"
         onClick={e => {
           e.preventDefault()
-          history.pushState(null, '', `/docs#${id}`)
+          history.pushState(null, '', `${pathname}#${id}`)
         }}
       >
         #
@@ -130,116 +140,11 @@ function Heading({ id, level = 2, children }: { id: string; level?: 1 | 2 | 3; c
   )
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Page components — one per docs section ───────────────────────────────────
 
-export function DocsPage() {
-  const location = useLocation()
-  const [activeId, setActiveId] = useState<string>('')
-  const contentRef = useRef<HTMLDivElement>(null)
-  const scrollingRef = useRef(false)
-
-  // Scroll to hash on load
-  useEffect(() => {
-    const hash = location.hash.slice(1)
-    if (hash) {
-      setTimeout(() => {
-        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        setActiveId(hash)
-      }, 80)
-    }
-  }, [location.hash])
-
-  // IntersectionObserver for active TOC item — disabled briefly after a sidebar click
-  useEffect(() => {
-    const headings = contentRef.current?.querySelectorAll('h2[id], h3[id]') ?? []
-    const obs = new IntersectionObserver(
-      entries => {
-        if (scrollingRef.current) return
-        for (const e of entries) {
-          if (e.isIntersecting) setActiveId(e.target.id)
-        }
-      },
-      { rootMargin: '-20% 0px -70% 0px' }
-    )
-    headings.forEach(h => obs.observe(h))
-    return () => obs.disconnect()
-  }, [])
-
-  return (
-    <div className="docs-layout">
-      {/* Left sidebar */}
-      <aside className="docs-sidebar">
-        <nav className="docs-nav">
-          {SIDEBAR.map(section => (
-            <div key={section.title} className="docs-nav-section">
-              <span className="docs-nav-title">{section.title}</span>
-              {section.items.map(item => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`docs-nav-link ${activeId === item.id ? 'docs-nav-active' : ''}`}
-                  onClick={e => {
-                    e.preventDefault()
-                    scrollingRef.current = true
-                    setActiveId(item.id)
-                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    history.replaceState(null, '', `/docs#${item.id}`)
-                    setTimeout(() => { scrollingRef.current = false }, 900)
-                  }}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main content */}
-      <article className="docs-content" ref={contentRef}>
-        <DocsContent />
-      </article>
-
-      {/* Right TOC — only the entries of the current main section */}
-      <aside className="docs-toc">
-        <span className="docs-toc-title">On this page</span>
-        {(() => {
-          const current =
-            SIDEBAR.find(section => section.items.some(item => item.id === activeId)) ?? SIDEBAR[0]
-          return (
-            <div className="docs-toc-group">
-              <span className="docs-toc-group-label">{current.title}</span>
-              {current.items.map(item => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`docs-toc-link ${activeId === item.id ? 'docs-toc-active' : ''}`}
-                  onClick={e => {
-                    e.preventDefault()
-                    scrollingRef.current = true
-                    setActiveId(item.id)
-                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    history.replaceState(null, '', `/docs#${item.id}`)
-                    setTimeout(() => { scrollingRef.current = false }, 900)
-                  }}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          )
-        })()}
-      </aside>
-    </div>
-  )
-}
-
-// ── Content ──────────────────────────────────────────────────────────────────
-
-function DocsContent() {
+function GettingStartedPage() {
   return (
     <>
-      {/* ── Getting started ─────────────────────── */}
       <section>
         <Heading id="introduction" level={1}>Introduction</Heading>
         <p>
@@ -306,8 +211,13 @@ function DocsContent() {
         <p>No installer? Copy the single skill file into your project:</p>
         <Code code={`curl -o .claude/skills/remediation/SKILL.md \\\n  https://raw.githubusercontent.com/arnaudmanaranche/remediation/main/.claude/skills/remediation/SKILL.md`} />
       </section>
+    </>
+  )
+}
 
-      {/* ── Commands ────────────────────────────── */}
+function CommandsPage() {
+  return (
+    <>
       <section>
         <Heading id="cmd-scan">scan</Heading>
         <p>
@@ -376,7 +286,8 @@ function DocsContent() {
         </p>
         <p>
           When <code>tokensImport</code> is set in your config, the needed import is injected
-          into every edited file. See <a href="#config-tokens-import">Token import</a>.
+          into every edited file. See{' '}
+          <Link to="/docs/configuration#config-tokens-import">Token import</Link>.
         </p>
       </section>
 
@@ -388,8 +299,13 @@ function DocsContent() {
         </p>
         <Code code="remediation init" />
       </section>
+    </>
+  )
+}
 
-      {/* ── Rules ───────────────────────────────── */}
+function RulesPage() {
+  return (
+    <>
       <section>
         <Heading id="rule-colors">colors/hardcoded</Heading>
         <p>
@@ -460,8 +376,13 @@ function DocsContent() {
         <Code lang="js" code={`// remediation.config.js\nmodule.exports = {\n  tokens: {\n    '#1976D2': 'colors.primary',\n  },\n}`} />
         <Code code={`// ✖ flagged — colors.primary exists for this value\n<div style={{ color: '#1976D2' }} />`} />
       </section>
+    </>
+  )
+}
 
-      {/* ── Configuration ───────────────────────── */}
+function ConfigurationPage() {
+  return (
+    <>
       <section>
         <Heading id="config-file">Config file</Heading>
         <p>
@@ -518,8 +439,13 @@ function DocsContent() {
         <Code lang="js" code={`module.exports = {\n  tokensImport: '@/design/tokens',\n  tokens: {\n    '#1976D2': 'colors.primary',\n  },\n}`} />
         <Code code={`// injected at the top of each edited file\nimport { colors, spacing } from '@/design/tokens';`} />
       </section>
+    </>
+  )
+}
 
-      {/* ── CI / CD ─────────────────────────────── */}
+function CiCdPage() {
+  return (
+    <>
       <section>
         <Heading id="ci-github">GitHub Actions</Heading>
         <p>Add a step to any workflow to block merges on design system violations:</p>
@@ -544,8 +470,13 @@ function DocsContent() {
         </p>
         <Code code="npx remediation scan --ignore-baseline" />
       </section>
+    </>
+  )
+}
 
-      {/* ── Privacy ─────────────────────────────── */}
+function PrivacyPage() {
+  return (
+    <>
       <section>
         <Heading id="telemetry">Telemetry</Heading>
         <p>
@@ -573,3 +504,162 @@ function DocsContent() {
   )
 }
 
+const PAGE_BY_SLUG: Record<SectionSlug, ComponentType> = {
+  'getting-started': GettingStartedPage,
+  'commands': CommandsPage,
+  'rules': RulesPage,
+  'configuration': ConfigurationPage,
+  'ci-cd': CiCdPage,
+  'privacy': PrivacyPage,
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
+export function DocsPage() {
+  const { section: slug } = useParams<{ section: SectionSlug }>()
+  const location = useLocation()
+  const [activeId, setActiveId] = useState<string>('')
+  const contentRef = useRef<HTMLDivElement>(null)
+  const scrollingRef = useRef(false)
+
+  const index = SECTIONS.findIndex(s => s.slug === slug)
+  const section = index === -1 ? null : SECTIONS[index]
+
+  // New page: back to top, or land on the deep-linked heading.
+  useEffect(() => {
+    if (!slug) return
+    const hash = location.hash.slice(1)
+    scrollingRef.current = true
+    setActiveId(hash)
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        setTimeout(() => { scrollingRef.current = false }, 900)
+      }, 80)
+    } else {
+      window.scrollTo(0, 0)
+      scrollingRef.current = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug])
+
+  // Track the heading currently in view for the right-hand "On this page".
+  useEffect(() => {
+    if (!slug) return
+    const headings = contentRef.current?.querySelectorAll('h1[id], h2[id], h3[id]') ?? []
+    const obs = new IntersectionObserver(
+      entries => {
+        if (scrollingRef.current) return
+        for (const e of entries) {
+          if (e.isIntersecting) setActiveId(e.target.id)
+        }
+      },
+      { rootMargin: '-20% 0px -70% 0px' }
+    )
+    headings.forEach(h => obs.observe(h))
+    return () => obs.disconnect()
+  }, [slug])
+
+  // Legacy single-page URLs (/docs, /docs#anchor) → routed equivalent.
+  if (!section) {
+    const id = location.hash.slice(1)
+    const target =
+      (slug && SECTIONS.find(s => s.slug === slug)) ??
+      SECTIONS.find(s => s.items.some(item => item.id === id)) ??
+      SECTIONS[0]
+    return <Navigate to={`/docs/${target.slug}${location.hash}`} replace />
+  }
+
+  const Page = PAGE_BY_SLUG[section.slug]
+  const prev = index > 0 ? SECTIONS[index - 1] : null
+  const next = index < SECTIONS.length - 1 ? SECTIONS[index + 1] : null
+
+  return (
+    <div className="docs-layout">
+      {/* Left sidebar — navigates between pages */}
+      <aside className="docs-sidebar">
+        <nav className="docs-nav">
+          {SECTIONS.map(s => (
+            <div key={s.slug} className="docs-nav-section">
+              <span className="docs-nav-title">{s.title}</span>
+              {s.items.map(item =>
+                s.slug === slug ? (
+                  // Within the current page: smooth-scroll anchors
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className={`docs-nav-link ${activeId === item.id ? 'docs-nav-active' : ''}`}
+                    onClick={e => {
+                      e.preventDefault()
+                      scrollingRef.current = true
+                      setActiveId(item.id)
+                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      history.replaceState(null, '', `/docs/${section.slug}#${item.id}`)
+                      setTimeout(() => { scrollingRef.current = false }, 900)
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.id}
+                    to={`/docs/${s.slug}`}
+                    className="docs-nav-link"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main content — just this section's page */}
+      <article className="docs-content">
+        <div ref={contentRef}>
+          <Page />
+        </div>
+        <nav className="docs-pager">
+          {prev ? (
+            <Link to={`/docs/${prev.slug}`} className="docs-pager-link docs-pager-prev">
+              <span className="docs-pager-dir">Previous</span>
+              <span className="docs-pager-title">{prev.title}</span>
+            </Link>
+          ) : <span />}
+          {next && (
+            <Link to={`/docs/${next.slug}`} className="docs-pager-link docs-pager-next">
+              <span className="docs-pager-dir">Next</span>
+              <span className="docs-pager-title">{next.title}</span>
+            </Link>
+          )}
+        </nav>
+      </article>
+
+      {/* Right TOC — the headings of this page */}
+      <aside className="docs-toc">
+        <span className="docs-toc-title">On this page</span>
+        <div className="docs-toc-group">
+          <span className="docs-toc-group-label">{section.title}</span>
+          {section.items.map(item => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={`docs-toc-link ${activeId === item.id ? 'docs-toc-active' : ''}`}
+              onClick={e => {
+                e.preventDefault()
+                scrollingRef.current = true
+                setActiveId(item.id)
+                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                history.replaceState(null, '', `/docs/${section.slug}#${item.id}`)
+                setTimeout(() => { scrollingRef.current = false }, 900)
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </aside>
+    </div>
+  )
+}

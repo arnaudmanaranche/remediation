@@ -51,7 +51,7 @@ export default function App() {
 
 function Banner() {
   return (
-    <Link to="/docs#getting-agents" className="banner">
+    <Link to="/docs/getting-started#getting-agents" className="banner">
       <span className="banner-badge">NEW</span>
       <span className="banner-text">Your AI coding agent can now fix design drift for you</span>
       <span className="banner-cta">Install the skill →</span>
