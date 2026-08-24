@@ -296,6 +296,25 @@ remediation scan --ignore-baseline
 
 The baseline is saved to `.remediation-baseline.json`. Commit it alongside your code so CI and teammates share the same starting point.
 
+## AI Agents
+
+Use this skill when you want an AI coding agent (Claude Code, opencode, Cursor, …) to find or fix design-system drift for you — it encodes the safe workflow: scan first, configure token names, preview the codemod, apply, and verify the diff.
+
+Install across 75+ agents via the skills CLI:
+
+```bash
+npx skills add arnaudmanaranche/remediation
+```
+
+Or as a Claude Code plugin:
+
+```
+/plugin marketplace add arnaudmanaranche/remediation
+/plugin install remediation@remediation
+```
+
+The skill lives at [`.claude/skills/remediation/SKILL.md`](.claude/skills/remediation/SKILL.md) and activates automatically on drift/tokenization requests.
+
 ## CI Usage
 
 ```yaml
