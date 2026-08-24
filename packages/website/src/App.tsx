@@ -43,6 +43,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/docs" element={<DocsPage />} />
+        <Route path="/docs/:section" element={<DocsPage />} />
         <Route path="/docs/*" element={<DocsPage />} />
       </Routes>
     </div>
