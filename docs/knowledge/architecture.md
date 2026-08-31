@@ -10,8 +10,9 @@
   (`ast/cssExtractor.ts`).
 - Property classification: `packages/cli/src/core/ast/cssProperties.ts`
   (`COLOR_PROPS` / `SPACING_PROPS` / `TYPOGRAPHY_PROPS` / `RADIUS_PROPS` /
-  `SHADOW_PROPS`). Includes shorthands (`border`, `background`, `outline`);
-  their compound values are split per sub-value by the shared tokenizer.
+  `SHADOW_PROPS`). Includes shorthands (`border`, `background`, `outline`,
+  and `flex` for spacing); their compound values are split per sub-value by
+  the shared tokenizer.
 - The rules in `packages/cli/src/core/rules/` consume the same extractor via
   `ast/ruleHelpers.ts`.
 

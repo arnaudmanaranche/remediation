@@ -92,6 +92,13 @@ const el = (
     expect(result).toBeNull();
   });
 
+  it('extracts flex shorthand as a spacing prop', () => {
+    const result = tsx(`const el = <div style={{ flex: '1 0 8px' }} />`);
+    expect(result).toHaveLength(1);
+    expect(result[0].cssProperty).toBe('flex');
+    expect(result[0].rawValue).toBe('1 0 8px');
+  });
+
   it('extracts from CSS-in-JS tagged template literals', () => {
     const result = tsx(`
       const Button = styled.button\`
