@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.16.1...remediation-v0.17.0) (2026-08-31)
+
+
+### Features
+
+* **cli:** add flex shorthand to spacing prop classification ([e798d61](https://github.com/arnaudmanaranche/remediation/commit/e798d61202a9954aa1b156236bdce1819c85879d))
+
 ## [0.16.1](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.16.0...remediation-v0.16.1) (2026-08-24)
 
 
