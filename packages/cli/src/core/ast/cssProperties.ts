@@ -19,7 +19,7 @@ export const SPACING_PROPS = new Set([
   'top', 'right', 'bottom', 'left',
   'inset', 'insetInline', 'insetBlock',
   'width', 'height', 'minWidth', 'maxWidth', 'minHeight', 'maxHeight',
-  'flexBasis', 'gridGap', 'gridRowGap', 'gridColumnGap',
+  'flex', 'flexBasis', 'gridGap', 'gridRowGap', 'gridColumnGap',
 ]);
 
 export const TYPOGRAPHY_PROPS = new Set([

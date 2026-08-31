@@ -101,6 +101,15 @@ describe('applyCodemod', () => {
     expect(fs.readFileSync(file, 'utf-8')).toContain('border: `1px solid ${colors.gray200}`');
   });
 
+  it('rewrites a length embedded in flex shorthand as a template literal', () => {
+    const file = writeFile('C.tsx', `const el = <div style={{ flex: '1 0 8px' }} />;`);
+    const sp = proposal('spacing', '8px', file, { tokenRef: 'spacing.sm' });
+
+    applyCodemod(tmpDir, [sp], false);
+
+    expect(fs.readFileSync(file, 'utf-8')).toContain('flex: `1 0 ${spacing.sm}`');
+  });
+
   it('never rewrites a translucent rgba() to an opaque token', () => {
     const file = writeFile(
       'C.tsx',

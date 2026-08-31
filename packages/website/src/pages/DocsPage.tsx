@@ -321,7 +321,7 @@ function RulesPage() {
         <Heading id="rule-spacing">spacing/hardcoded</Heading>
         <p>
           Detects hardcoded spacing values: <code>px</code>, <code>rem</code>, <code>em</code>,
-          and unitless numbers in margin/padding/gap/width/height properties.
+          and unitless numbers in margin/padding/gap/width/height/flex properties.
         </p>
         <Code colorize code={`// ✖ flagged\n<div style={{ padding: '16px' }} />\n\n// ✔ ok\n<div style={{ padding: spacing.md }} />`} />
       </section>
