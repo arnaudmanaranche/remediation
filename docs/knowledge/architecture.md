@@ -35,6 +35,7 @@ Runs `extract → normalize → cluster → decide → codemod` in
 | `pipeline/clusterer.ts` | `clusterValues`, `suggestName`, `getSuggestedNames` |
 | `pipeline/decision.ts` | proposal confidence + occurrence threshold |
 | `pipeline/codemod.ts` | AST/offset edits; `collectFileWork`, `buildExpression` |
+| `pipeline/designMd.ts` | `generateDesignMd` — renders cluster proposals as a `DESIGN.md` in the `@google/design.md` spec format: YAML frontmatter (`colors`/`spacing`/`typography` token maps; typography as `fontSize`/`fontWeight` objects) + prose sections in the spec's canonical order (Overview → Colors → Typography → Layout → Elevation & Depth → Shapes) |
 | `pipeline/index.ts` | orchestration, `buildConfigTokenMap` |
 
 ### Auto-generated names

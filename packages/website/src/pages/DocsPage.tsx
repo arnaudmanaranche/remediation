@@ -23,6 +23,7 @@ const SECTIONS = [
       { id: 'cmd-scan',     label: 'scan' },
       { id: 'cmd-tokens',   label: 'tokens' },
       { id: 'cmd-analyze',  label: 'analyze' },
+      { id: 'cmd-design',   label: 'design' },
       { id: 'cmd-init',     label: 'init' },
     ],
   },
@@ -292,6 +293,26 @@ function CommandsPage() {
       </section>
 
       <section>
+        <Heading id="cmd-design">design</Heading>
+        <p>
+          Generates a <code>DESIGN.md</code> in your project root that documents the design
+          tokens (colors, spacing, typography) remediation detects in your codebase. The file
+          follows the{' '}
+          <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noreferrer">
+            <code>@google/design.md</code> format spec
+          </a>
+          : YAML frontmatter with machine-readable token maps plus markdown prose sections in
+          the spec's canonical order — so any AI coding agent (Claude Code, Copilot, v0,
+          opencode, …) can read it to stay on-brand.
+        </p>
+        <Code code="remediation design [path]" />
+        <FlagTable flags={[
+          ['--output <file>',         'Output file path (default DESIGN.md)'],
+          ['--min-confidence <level>','Filter proposals: high | medium | low'],
+        ]} />
+      </section>
+
+      <section>
         <Heading id="cmd-init">init</Heading>
         <p>
           Interactive wizard that creates a <code>remediation.config.js</code> in the current
@@ -480,7 +501,8 @@ function PrivacyPage() {
       <section>
         <Heading id="telemetry">Telemetry</Heading>
         <p>
-          <code>scan</code>, <code>tokens</code>, and <code>analyze</code> send anonymous usage
+          <code>scan</code>, <code>tokens</code>, <code>analyze</code>, and <code>design</code>{' '}
+          send anonymous usage
           data — command name, duration, violation counts, and CLI/Node/OS version — via
           OpenTelemetry. It never includes file paths, source code, config contents, or any
           other identifier.

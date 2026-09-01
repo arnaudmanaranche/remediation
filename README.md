@@ -73,6 +73,27 @@ remediation analyze [path]
 | `--output <file>` | Generate `tokens.ts` file |
 | `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
 
+### Design — Generate DESIGN.md for AI agents
+
+```bash
+remediation design [path]
+```
+
+Generates a `DESIGN.md` in your project root that documents your detected design
+tokens (colors, spacing, typography). The file follows the
+[`@google/design.md` format spec](https://github.com/google-labs-code/design.md):
+a YAML frontmatter block with machine-readable design tokens plus markdown prose
+sections (Overview, Colors, Typography, Layout, Elevation & Depth, Shapes) in the
+spec's canonical order. Any AI coding agent (Claude Code, Copilot, v0, opencode,
+…) can read it to stay on-brand — point your agent at the file so generated UI
+matches your existing design system, and validate it with
+`npx @google/design.md lint DESIGN.md`.
+
+| Flag | Description |
+|------|-------------|
+| `--output <file>` | Output file path (default `DESIGN.md`) |
+| `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
+
 ## Rules
 
 ### Token Rules
@@ -326,7 +347,7 @@ With `error`-severity rules configured, the command exits with code `1` on viola
 
 ## Telemetry
 
-`scan`, `tokens`, and `analyze` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
+`scan`, `tokens`, `analyze`, and `design` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
 
 Disable telemetry with:
 
