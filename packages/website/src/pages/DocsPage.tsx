@@ -625,7 +625,7 @@ export function DocsPage() {
                 ) : (
                   <Link
                     key={item.id}
-                    to={`/docs/${s.slug}`}
+                    to={`/docs/${s.slug}#${item.id}`}
                     className="docs-nav-link"
                   >
                     {item.label}
