@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.17.0...remediation-v0.18.0) (2026-09-01)
+
+
+### Features
+
+* **cli:** generate DESIGN.md for AI agents ([#14](https://github.com/arnaudmanaranche/remediation/issues/14)) ([8faaba3](https://github.com/arnaudmanaranche/remediation/commit/8faaba39062d4b87f166c2fc91088bbb57d07680))
+
 ## [0.17.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.16.1...remediation-v0.17.0) (2026-08-31)
 
 
