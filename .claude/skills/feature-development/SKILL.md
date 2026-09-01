@@ -52,8 +52,10 @@ the user asked for the full loop in one go.
 
 ## Repo facts (read the knowledge base first)
 
-Before ANY step, read `CLAUDE.md` and the relevant file in `docs/knowledge/`
-(architecture, build-test-run, release-process). They're versioned and current.
+Before ANY step, read `CLAUDE.md`, `CONTEXT.md` (enforced vocabulary:
+Rule / Codemod / Token …), `PRODUCT.md` (product purpose + brand/design
+constraints for the website), and the relevant file in `docs/knowledge/`
+(architecture, build-test-run, release-process). These are versioned and current.
 
 - Monorepo: `packages/cli` (published npm `remediation`) + `packages/website` (SPA, not published).
 - Package manager: `pnpm@11.1.2`.
@@ -153,6 +155,7 @@ Have it report back. The review gate mirrors what CI + a reviewer check:
    - commands / flags / rules / config → `README.md`
    - tooling → `docs/knowledge/build-test-run.md` or `docs/knowledge/release-process.md`
    - vocabulary → `CONTEXT.md`
+   - product purpose / brand/design constraints → `PRODUCT.md` (website changes)
    - **User-facing rule/behavior change → `packages/website/src/pages/DocsPage.tsx`.** If the change alters what a rule detects, how the codemod rewrites, or adds/renames a flag or config field documented on the docs page, update the matching `<section>` there (rule descriptions, flag tables, code examples). Otherwise leave it untouched.
 6. **Diff review**: the review agent inspects the **current branch HEAD**
    directly — it must not rely solely on the changed-files list or the
