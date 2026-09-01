@@ -1,8 +1,8 @@
 # Telemetry
 
-`packages/cli/src/telemetry/` instruments `scan`, `tokens`, and `analyze` with
-OpenTelemetry traces. `init` is not instrumented — it's a local interactive
-scaffolding command with nothing worth measuring.
+`packages/cli/src/telemetry/` instruments `scan`, `tokens`, `analyze`, and
+`design` with OpenTelemetry traces. `init` is not instrumented — it's a local
+interactive scaffolding command with nothing worth measuring.
 
 ## What's collected
 
@@ -12,6 +12,7 @@ never file paths, source code, cluster values, or config contents:
 - `cli.version`, `node.version`, `os.platform`
 - `scan`/`tokens`: `scan.files_count`, `scan.violations_total`, `scan.violations_errors`
 - `analyze`: `analyze.design_values_count`, `analyze.proposals_count`, `analyze.codemod`
+- `design`: `design.proposals_count`, `design.output_path`
 
 ## Consent (opt-out)
 
