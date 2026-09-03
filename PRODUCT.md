@@ -1,3 +1,12 @@
+---
+name: "remediation"
+tagline: "Design system drift, caught before it ships."
+tone: "precise, opinionated, unobtrusive"
+audience: "frontend developers and tech leads evaluating whether to adopt the tool"
+colors:
+  primary: "#0A0A0A"
+---
+
 # Product
 
 ## Register
