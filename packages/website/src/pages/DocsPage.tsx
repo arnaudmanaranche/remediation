@@ -329,8 +329,10 @@ function CommandsPage() {
         ]} />
         <p>
           Generated output: <code>tokens.ts</code> (the token records) and{' '}
-          <code>primitives.tsx</code> (the <code>Box</code> and <code>Text</code> components plus
-          <code>ColorName</code>/<code>Spacing</code>/<code>TypeScale</code> unions). When{' '}
+          <code>primitives.tsx</code> (the <code>Box</code> and <code>Text</code> components plus{' '}
+          <code>ColorName</code>/<code>Spacing</code>/<code>FontSizeName</code>/
+          <code>FontWeightName</code> unions — typography is split so a <code>fontSize</code>{' '}
+          prop only takes size names). When{' '}
           <code>tokensImport</code> is set in your config, the primitives import from that module
           instead of writing a local tokens file.
         </p>

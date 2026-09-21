@@ -116,8 +116,10 @@ design system are a **TypeScript error**:
 
 Generated output:
 - `tokens.ts` — the token records the primitives resolve against.
-- `primitives.tsx` — `Box`, `Text`, and the `ColorName` / `Spacing` / `TypeScale`
-  union types. Only the token groups present in your codebase are emitted.
+- `primitives.tsx` — `Box`, `Text`, and the `ColorName` / `Spacing` /
+  `FontSizeName` / `FontWeightName` union types (typography is split so a
+  `fontSize` prop can only take size names, a `fontWeight` prop only weight
+  names). Only the token groups present in your codebase are emitted.
 
 Point your AI coding agent at the generated file: it can compose against the
 constrained API, but it can't invent off-system values — the compiler enforces

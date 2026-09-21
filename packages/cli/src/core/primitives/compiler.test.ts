@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generatePrimitives } from './generator';
+import { compilePrimitives } from './compiler';
 import { TokenProposal } from '../pipeline/decision';
 import { NormalizedValue } from '../pipeline/normalizer';
 
@@ -25,21 +25,22 @@ function proposal(
   };
 }
 
-describe('generatePrimitives', () => {
+describe('compilePrimitives', () => {
   it('returns no files when no tokens are proposed', () => {
-    expect(generatePrimitives([]).files).toEqual({});
+    expect(compilePrimitives([]).files).toEqual({});
   });
 
   it('writes a tokens.ts when no tokensImport is configured', () => {
     const props = [proposal('color', '#2563eb', 'a.tsx', { tokenName: 'primary' })];
-    const { files } = generatePrimitives(props);
+    const { files } = compilePrimitives(props);
     expect(files['tokens.ts']).toContain('export const colors');
     expect(files['tokens.ts']).toContain("'primary': '#2563eb'");
+    expect(files['tokens.ts']).toContain('Run `remediation primitives` to regenerate');
   });
 
   it('omits tokens.ts and imports from tokensImport when configured', () => {
     const props = [proposal('color', '#2563eb', 'a.tsx', { tokenName: 'primary' })];
-    const { files } = generatePrimitives(props, { tokensImport: '@/design/tokens' });
+    const { files } = compilePrimitives(props, { tokensImport: '@/design/tokens' });
     expect(files['tokens.ts']).toBeUndefined();
     expect(files['primitives.tsx']).toContain("import { colors } from '@/design/tokens';");
   });
@@ -51,11 +52,24 @@ describe('generatePrimitives', () => {
       proposal('spacing', '16px', 'a.tsx', { tokenName: 'md' }),
       proposal('typography', '14px', 'a.tsx', { tokenName: 'body' }),
     ];
-    const { files } = generatePrimitives(props);
+    const { files } = compilePrimitives(props);
     const src = files['primitives.tsx'];
     expect(src).toContain('export type ColorName = keyof typeof colors;');
     expect(src).toContain('export type Spacing = keyof typeof spacing;');
-    expect(src).toContain('export type TypeScale = keyof typeof typography;');
+  });
+
+  it('splits typography into size and weight prop unions', () => {
+    const props = [
+      proposal('typography', '14px', 'a.tsx', { tokenName: 'body' }),
+      proposal('typography', '12px', 'b.tsx', { tokenName: 'small' }),
+      proposal('typography', '600', 'a.tsx', { tokenName: 'semibold' }),
+    ];
+    const src = compilePrimitives(props).files['primitives.tsx'];
+    expect(src).toContain('export type FontSizeName = "body" | "small";');
+    expect(src).toContain('export type FontWeightName = "semibold";');
+    expect(src).toContain('fontSize?: FontSizeName;');
+    expect(src).toContain('fontWeight?: FontWeightName;');
+    expect(src).not.toContain('TypeScale');
   });
 
   it('keys Box visual props to spacing and color tokens only', () => {
@@ -63,9 +77,9 @@ describe('generatePrimitives', () => {
       proposal('color', '#2563eb', 'a.tsx', { tokenName: 'primary' }),
       proposal('spacing', '8px', 'a.tsx', { tokenName: 'sm' }),
     ];
-    const src = generatePrimitives(props).files['primitives.tsx'];
-    expect(src).toContain('padding?: Spacing | [Spacing, Spacing] | [Spacing, Spacing, Spacing, Spacing];');
-    expect(src).toContain('margin?: Spacing | [Spacing, Spacing] | [Spacing, Spacing, Spacing, Spacing];');
+    const src = compilePrimitives(props).files['primitives.tsx'];
+    expect(src).toContain('padding?: Spacing | [Spacing, Spacing] | [Spacing, Spacing, Spacing] | [Spacing, Spacing, Spacing, Spacing];');
+    expect(src).toContain('margin?: Spacing | [Spacing, Spacing] | [Spacing, Spacing, Spacing] | [Spacing, Spacing, Spacing, Spacing];');
     expect(src).toContain('gap?: Spacing;');
     expect(src).toContain('backgroundColor?: ColorName;');
     expect(src).toContain('borderColor?: ColorName;');
@@ -79,17 +93,17 @@ describe('generatePrimitives', () => {
       proposal('typography', '14px', 'a.tsx', { tokenName: 'body' }),
       proposal('typography', '600', 'a.tsx', { tokenName: 'semibold' }),
     ];
-    const src = generatePrimitives(props).files['primitives.tsx'];
+    const src = compilePrimitives(props).files['primitives.tsx'];
     expect(src).toContain('color?: ColorName;');
-    expect(src).toContain('fontSize?: TypeScale;');
-    expect(src).toContain('fontWeight?: TypeScale;');
+    expect(src).toContain('fontSize?: FontSizeName;');
+    expect(src).toContain('fontWeight?: FontWeightName;');
     expect(src).toContain('color: colors[color]');
     expect(src).toContain('fontSize: typography[fontSize]');
   });
 
   it('omits Text when only spacing tokens exist', () => {
     const props = [proposal('spacing', '8px', 'a.tsx', { tokenName: 'sm' })];
-    const src = generatePrimitives(props).files['primitives.tsx'];
+    const src = compilePrimitives(props).files['primitives.tsx'];
     expect(src).toContain('export function Box(');
     expect(src).not.toContain('export function Text(');
     expect(src).not.toContain('backgroundColor');
@@ -97,7 +111,7 @@ describe('generatePrimitives', () => {
 
   it('omits spacing props when no spacing tokens exist', () => {
     const props = [proposal('color', '#2563eb', 'a.tsx', { tokenName: 'primary' })];
-    const src = generatePrimitives(props).files['primitives.tsx'];
+    const src = compilePrimitives(props).files['primitives.tsx'];
     expect(src).not.toContain('padding?');
     expect(src).toContain('backgroundColor?: ColorName;');
   });
@@ -107,13 +121,13 @@ describe('generatePrimitives', () => {
       proposal('spacing', '8px', 'a.tsx', { tokenName: 'sm' }),
       proposal('spacing', '16px', 'b.tsx', { tokenName: 'md' }),
     ];
-    const src = generatePrimitives(props).files['primitives.tsx'];
+    const src = compilePrimitives(props).files['primitives.tsx'];
     expect(src).toContain('value.map((v) => spacing[v]).join(\' \')');
   });
 
   it('includes the generation header', () => {
     const props = [proposal('spacing', '8px', 'a.tsx', { tokenName: 'sm' })];
-    const src = generatePrimitives(props).files['primitives.tsx'];
+    const src = compilePrimitives(props).files['primitives.tsx'];
     expect(src.startsWith('// Auto-generated by remediation')).toBe(true);
     expect(src).toContain('<Box padding="17px" />');
   });

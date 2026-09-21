@@ -4,7 +4,7 @@ import * as path from 'path';
 import pc from 'picocolors';
 import { runPipeline } from '../core/pipeline';
 import { loadConfig } from '../core/config';
-import { generatePrimitives } from '../core/primitives/generator';
+import { compilePrimitives } from '../core/primitives/compiler';
 import { withTelemetry } from '../telemetry/instrument';
 
 export function registerPrimitivesCommand(program: Command) {
@@ -33,7 +33,7 @@ export function registerPrimitivesCommand(program: Command) {
         }
 
         const config = loadConfig(scanPath);
-        const { files } = generatePrimitives(filteredProposals, { tokensImport: config.tokensImport });
+        const { files } = compilePrimitives(filteredProposals, { tokensImport: config.tokensImport });
         const outputDir = path.resolve(options.output!);
         fs.mkdirSync(outputDir, { recursive: true });
 

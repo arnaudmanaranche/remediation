@@ -68,14 +68,16 @@ See `TODO.md` for any remaining open limitations.
 
 ## `primitives` command — compiling the constrained API
 
-- `packages/cli/src/core/primitives/generator.ts` (`generatePrimitives`) turns the
+- `packages/cli/src/core/primitives/compiler.ts` (`compilePrimitives`) turns the
   pipeline's `decision.proposals` into a typed React primitives API: `tokens.ts`
   (reuses `generateTokensFile`) + `primitives.tsx` with `Box`/`Text` components
-  and `ColorName`/`Spacing`/`TypeScale` union types (`keyof typeof` over the token
-  records). Props accept token names only, so off-system values fail to typecheck.
+  and `ColorName`/`Spacing`/`FontSizeName`/`FontWeightName` union types (`keyof
+  typeof` over the token records; typography is split into size/weight literal
+  unions so `fontSize` can't take a weight name). Props accept token names only,
+  so off-system values fail to typecheck.
 - Emits only the groups that exist (colors/spacing/typography): `Box` when colors
   or spacing tokens exist, `Text` when colors or typography exist; their props are
-  generated per present group. Spacing accepts a single scale name or 1–2/1–4
+  generated per present group. Spacing accepts a single scale name or 1–4 element
   tuples; `resolveSpacing` joins tuples into the compound CSS value.
 - When config `tokensImport` is set, the generated file imports from that module
   instead of writing a local `tokens.ts`.
