@@ -24,6 +24,7 @@ const SECTIONS = [
       { id: 'cmd-tokens',   label: 'tokens' },
       { id: 'cmd-analyze',  label: 'analyze' },
       { id: 'cmd-design',   label: 'design' },
+      { id: 'cmd-primitives', label: 'primitives' },
       { id: 'cmd-init',     label: 'init' },
     ],
   },
@@ -313,6 +314,34 @@ function CommandsPage() {
       </section>
 
       <section>
+        <Heading id="cmd-primitives">primitives</Heading>
+        <p>
+          The compiler step. Takes the tokens remediation detects and turns them into a
+          constrained React API — a small <code>Box</code>/<code>Text</code> primitive set whose
+          props are typed to your token names. Because the props only accept tokens, values
+          outside the design system fail to typecheck:
+        </p>
+        <Code colorize code={`// ✅ compiles — props are token names\n<Box padding="sm" gap="md" backgroundColor="primary">\n  <Text color="primary" fontSize="body">hi</Text>\n</Box>\n\n// ❌ type error — '17px' is not a Spacing, '#f5f5f5' is not a ColorName\n<Box padding="17px" backgroundColor="#f5f5f5" />`} />
+        <Code code="remediation primitives [path] [flags]" />
+        <FlagTable flags={[
+          ['--output <dir>',          'Output directory (default primitives/)'],
+          ['--min-confidence <level>','Filter proposals: high | medium | low'],
+        ]} />
+        <p>
+          Generated output: <code>tokens.ts</code> (the token records) and{' '}
+          <code>primitives.tsx</code> (the <code>Box</code> and <code>Text</code> components plus
+          <code>ColorName</code>/<code>Spacing</code>/<code>TypeScale</code> unions). When{' '}
+          <code>tokensImport</code> is set in your config, the primitives import from that module
+          instead of writing a local tokens file.
+        </p>
+        <p>
+          The point is constraint: the compiler — not a lint rule or a code review — is what keeps
+          AI-generated UI on-system. Point your coding agent at the generated file so it composes
+          against the API instead of inventing values.
+        </p>
+      </section>
+
+      <section>
         <Heading id="cmd-init">init</Heading>
         <p>
           Interactive wizard that creates a <code>remediation.config.js</code> in the current
@@ -501,7 +530,8 @@ function PrivacyPage() {
       <section>
         <Heading id="telemetry">Telemetry</Heading>
         <p>
-          <code>scan</code>, <code>tokens</code>, <code>analyze</code>, and <code>design</code>{' '}
+          <code>scan</code>, <code>tokens</code>, <code>analyze</code>, <code>design</code>, and{' '}
+          <code>primitives</code>{' '}
           send anonymous usage
           data — command name, duration, violation counts, and CLI/Node/OS version — via
           OpenTelemetry. It never includes file paths, source code, config contents, or any

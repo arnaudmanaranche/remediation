@@ -94,6 +94,43 @@ matches your existing design system, and validate it with
 | `--output <file>` | Output file path (default `DESIGN.md`) |
 | `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
 
+### Primitives — Compile a constrained React API
+
+```bash
+remediation primitives [path]
+```
+
+The compiler step. Takes the tokens `analyze` detects and turns them into a
+typed React primitives API — `Box` and `Text` components whose props only accept
+token names. Because the props are keyed to your tokens, values outside the
+design system are a **TypeScript error**:
+
+```tsx
+<Box padding="sm" gap="md" backgroundColor="primary">
+  <Text color="primary" fontSize="body">hi</Text>
+</Box>
+
+// Type errors — not a Spacing, not a ColorName:
+<Box padding="17px" backgroundColor="#f5f5f5" />
+```
+
+Generated output:
+- `tokens.ts` — the token records the primitives resolve against.
+- `primitives.tsx` — `Box`, `Text`, and the `ColorName` / `Spacing` / `TypeScale`
+  union types. Only the token groups present in your codebase are emitted.
+
+Point your AI coding agent at the generated file: it can compose against the
+constrained API, but it can't invent off-system values — the compiler enforces
+the design system where a lint rule or review is too easy to leave to chance.
+
+| Flag | Description |
+|------|-------------|
+| `--output <dir>` | Output directory (default `primitives/`) |
+| `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
+
+When `tokensImport` is set in your config, the primitives import from that
+module instead of writing a local `tokens.ts`.
+
 ## Rules
 
 ### Token Rules
@@ -347,7 +384,7 @@ With `error`-severity rules configured, the command exits with code `1` on viola
 
 ## Telemetry
 
-`scan`, `tokens`, `analyze`, and `design` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
+`scan`, `tokens`, `analyze`, `design`, and `primitives` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
 
 Disable telemetry with:
 

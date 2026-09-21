@@ -1,10 +1,10 @@
 ---
 name: remediation
-description: Use when the user wants to find or fix design-system drift in a React/TS/CSS codebase — hardcoded colors, spacing, typography, radii, or shadows that bypass design tokens; extracting a token set from existing styles; running the remediation CLI (scan / tokens / analyze / init); interpreting its health score or violations; configuring remediation.config.js; applying or reviewing its codemods safely; wiring it into CI; or adopting it incrementally on a legacy codebase via baselines. Not for general UI/design work (use impeccable) or for developing the remediation CLI itself.
+description: Use when the user wants to find or fix design-system drift in a React/TS/CSS codebase — hardcoded colors, spacing, typography, radii, or shadows that bypass design tokens; extracting a token set from existing styles; running the remediation CLI (scan / tokens / analyze / design / primitives / init); interpreting its health score or violations; configuring remediation.config.js; applying or reviewing its codemods safely; or compiling detected tokens into a constrained Box/Text primitives API for AI agents; wiring it into CI; or adopting it incrementally on a legacy codebase via baselines. Not for general UI/design work (use impeccable) or for developing the remediation CLI itself.
 version: 1.0.0
 ---
 
-Eliminate design-system drift with the `remediation` CLI: detect hardcoded values, propose a token set, and rewrite sources to token references — without ever reformatting user code.
+Eliminate design-system drift with the `remediation` CLI: detect hardcoded values, propose a token set, and rewrite sources to token references — without ever reformatting user code. Then compile those tokens into a constrained `Box`/`Text` API so off-system values fail to typecheck, locking generated UI on-system.
 
 ## Setup
 
@@ -19,6 +19,7 @@ You MUST do these before proceeding:
 - `remediation scan [path]` — violations + 0–100 health score. **Start here.** Exits 1 on `error`-severity violations (CI-ready). Flags: `--rule <pattern>` filter, `--format json`, `--verbose`, `--save-baseline` / `--ignore-baseline`.
 - `remediation tokens [path]` — shorthand for only the hardcoded-value rules (`colors/,spacing/,typography/,radius/,shadows/`), skipping structural ones (`drift`, `token-bypass`). Use when the goal is tokenization, not auditing.
 - `remediation analyze [path] --codemod` — full pipeline (extract → normalize → cluster → decide → codemod): proposes a token set and previews rewrites as a **dry run**. Add `--no-dry-run` to actually write files. `--min-confidence high|medium|low` filters proposals; `--output tokens.ts` emits the proposed token module.
+- `remediation primitives [path]` — compiles the detected tokens into a constrained React API (`Box`/`Text` with token-only props) plus `tokens.ts`. Props reject off-system values as type errors, so AI agents composing against it can't drift. `--output <dir>` sets the output directory (default `primitives/`).
 
 ## The safe codemod workflow
 

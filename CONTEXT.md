@@ -24,6 +24,17 @@ _Avoid_: style, value, constant
 The set of tokens, components, and conventions that a project is expected to follow.
 _Avoid_: UI library, theme
 
+**Primitive**:
+A generated React component (`Box`, `Text`) whose visual props are typed to token
+names, making off-system values (e.g. `padding="17px"`) a TypeScript error.
+_Avoid_: base component, building block, atom
+
+**Compiler**:
+The `primitives` command step that turns detected tokens into the constrained
+Primitive API — the mechanism that makes drifting UI hard to write, not just hard
+to miss.
+_Avoid_: generator, codegen, scaffold
+
 **User**:
 A front-end developer running remediation on their React project.
 _Avoid_: consumer, client
