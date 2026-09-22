@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v1.0.0...remediation-v1.1.0) (2026-09-22)
+
+
+### Features
+
+* **cli:** component-agnostic components command (token-constrained library from detected components) ([#19](https://github.com/arnaudmanaranche/remediation/issues/19)) ([a87369d](https://github.com/arnaudmanaranche/remediation/commit/a87369def4fcca0fffa01d1e5db05ee07c0170ec))
+
 ## [1.0.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.18.0...remediation-v1.0.0) (2026-09-22)
 
 
