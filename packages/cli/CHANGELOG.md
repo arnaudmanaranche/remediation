@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.18.0...remediation-v1.0.0) (2026-09-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cli:** compile detected tokens into a constrained primitives API ([#16](https://github.com/arnaudmanaranche/remediation/issues/16))
+
+### Features
+
+* **cli:** compile detected tokens into a constrained primitives API ([#16](https://github.com/arnaudmanaranche/remediation/issues/16)) ([c63d915](https://github.com/arnaudmanaranche/remediation/commit/c63d915b720d99437e393c29892e990ecb569616))
+
 ## [0.18.0](https://github.com/arnaudmanaranche/remediation/compare/remediation-v0.17.0...remediation-v0.18.0) (2026-09-01)
 
 
