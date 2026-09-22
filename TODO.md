@@ -22,6 +22,18 @@ No open items.
 
 ## Open
 
+### Radius and shadow values are never tokenized by `components`
+
+The analyze pipeline clusters colors/spacing/typography only — radius and
+shadow tokens are not proposed (`packages/cli/src/core/pipeline/`). So the
+`components` compiler can never map a `borderRadius` or `boxShadow` style value
+to a token: it stays in the component's literal `LOOK` (reported as `unmapped`
+when it collides with a mapped slot like `padding`). The `radius`/`shadows`
+scan rules flag the violations, but the compile step has nothing to map them
+to. Fix direction: extend the pipeline with radius/shadow clusters and slot
+kinds, then wire `borderRadius`/`boxShadow` slots into the archetype catalog
+(`packages/cli/src/core/components/archetypes.ts`).
+
 ### Typography tokens conflate size/weight with other type props
 
 `primitives` splits the typography bucket into size vs weight prop unions by

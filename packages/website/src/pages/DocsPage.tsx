@@ -25,6 +25,7 @@ const SECTIONS = [
       { id: 'cmd-analyze',  label: 'analyze' },
       { id: 'cmd-design',   label: 'design' },
       { id: 'cmd-primitives', label: 'primitives' },
+      { id: 'cmd-components', label: 'components' },
       { id: 'cmd-init',     label: 'init' },
     ],
   },
@@ -50,6 +51,7 @@ const SECTIONS = [
       { id: 'config-severity', label: 'Rule severity' },
       { id: 'config-tokens',   label: 'Token mappings' },
       { id: 'config-tokens-import', label: 'Token import' },
+      { id: 'config-components', label: 'Components selection' },
     ],
   },
   {
@@ -344,6 +346,35 @@ function CommandsPage() {
       </section>
 
       <section>
+        <Heading id="cmd-components">components</Heading>
+        <p>
+          The component-library step. Takes the tokens remediation detects plus the components
+          found in your codebase and compiles them into a <code>components.tsx</code> whose props
+          only accept token names. Each real component is classified against a catalog of 13
+          archetypes (<code>button</code>, <code>iconButton</code>, <code>card</code>,{' '}
+          <code>badge</code>, <code>input</code>, <code>select</code>, <code>checkbox</code>,{' '}
+          <code>radio</code>, <code>switch</code>, <code>skeleton</code>, <code>avatar</code>,{' '}
+          <code>divider</code>, <code>spinner</code>); near-duplicates are merged into one
+          canonical component, and detected style values become the component's props and
+          defaults. Values that can't be mapped to a token stay as literal <code>LOOK</code>{' '}
+          styles and are reported.
+        </p>
+        <Code colorize code={`// ✅ compiles — props are token names\n<Button backgroundColor="primary" padding={["sm", "md_16"]}>Save</Button>\n\n// ❌ type error — '17px' is not a Spacing\n<Button padding="17px" />`} />
+        <Code code="remediation components [path] [flags]" />
+        <FlagTable flags={[
+          ['--output <dir>',          'Output directory (default components/)'],
+          ['--min-confidence <level>','Filter proposals: high | medium | low'],
+        ]} />
+        <p>
+          Reuses the primitives output (<code>tokens.ts</code>/<code>primitives.tsx</code>) and
+          the same token unions, so components and primitives compose. When{' '}
+          <code>components</code> is set in your config to a list of archetype ids, only those are
+          emitted (force-included even when undetected); the default <code>'auto'</code> emits the
+          archetypes your codebase actually uses.
+        </p>
+      </section>
+
+      <section>
         <Heading id="cmd-init">init</Heading>
         <p>
           Interactive wizard that creates a <code>remediation.config.js</code> in the current
@@ -490,6 +521,17 @@ function ConfigurationPage() {
         </p>
         <Code lang="js" code={`module.exports = {\n  tokensImport: '@/design/tokens',\n  tokens: {\n    '#1976D2': 'colors.primary',\n  },\n}`} />
         <Code code={`// injected at the top of each edited file\nimport { colors, spacing } from '@/design/tokens';`} />
+      </section>
+
+      <section>
+        <Heading id="config-components">Components selection</Heading>
+        <p>
+          Set <code>components</code> to control which archetypes the{' '}
+          <code>components</code> command emits. <code>'auto'</code> (default) emits the
+          archetypes your codebase actually uses; an explicit list force-includes those
+          archetypes even when none are detected:
+        </p>
+        <Code lang="js" code={`module.exports = {\n  // 'auto' uses detection; a list forces the catalog:\n  components: ['button', 'card', 'avatar'],\n}`} />
       </section>
     </>
   )

@@ -19,7 +19,7 @@ type AstNode = {
  * Recursively walks a Babel AST node, calling visit() on every node.
  * We avoid @babel/traverse to sidestep CJS/ESM interop issues.
  */
-function walk(node: AstNode | null | undefined, visit: (n: AstNode) => void): void {
+export function walk(node: AstNode | null | undefined, visit: (n: AstNode) => void): void {
   if (!node || typeof node !== 'object') return;
   visit(node);
   for (const val of Object.values(node)) {
@@ -35,13 +35,13 @@ function walk(node: AstNode | null | undefined, visit: (n: AstNode) => void): vo
   }
 }
 
-function getPropertyName(key: AstNode): string | null {
+export function getPropertyName(key: AstNode): string | null {
   if (key.type === 'Identifier') return key.name as string;
   if (key.type === 'StringLiteral') return key.value as string;
   return null;
 }
 
-function getStringValue(value: AstNode): string | null {
+export function getStringValue(value: AstNode): string | null {
   if (value.type === 'StringLiteral') return value.value as string;
   // Template literal with no expressions: `#ff0000`
   if (value.type === 'TemplateLiteral') {
@@ -54,7 +54,7 @@ function getStringValue(value: AstNode): string | null {
   return null;
 }
 
-function getNumericValue(value: AstNode): string | null {
+export function getNumericValue(value: AstNode): string | null {
   if (value.type === 'NumericLiteral') {
     // e.g. fontSize: 14 — emit as "14" so rules can decide
     return String(value.value as number);

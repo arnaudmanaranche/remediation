@@ -113,7 +113,7 @@ function literalUnion(names: string[]): string {
   return names.map(n => JSON.stringify(n)).join(' | ');
 }
 
-const SPACING_RESOLVER = `function resolveSpacing(
+const SPACING_RESOLVER = `export function resolveSpacing(
   value: Spacing | [Spacing, Spacing] | [Spacing, Spacing, Spacing] | [Spacing, Spacing, Spacing, Spacing] | undefined
 ): string | undefined {
   if (value === undefined) return undefined;

@@ -85,3 +85,41 @@ See `TODO.md` for any remaining open limitations.
   `--min-confidence` filter as `design`/`analyze`, writes files under the
   `--output` dir (default `primitives/`). Telemetry: `primitives.proposals_count`,
   `primitives.tokens_import`, `primitives.output_path`.
+
+## `components` command — compiling the component library
+
+- `packages/cli/src/core/components/detector.ts` (`detectComponents`) parses each
+  source file with `@babel/parser` and finds PascalCase functions/arrow consts
+  that return JSX. Per component it records the root tag/attrs, the element
+  signature, and `styleValues` — collected from the root element's `style={{…}}`
+  object only (fallback: any `style` attr in the body). This scoping keeps data
+  objects like `const VARIANTS = { border: '#93c5fd' }` out of style extraction.
+- `packages/cli/src/core/components/archetypes.ts` — the catalog: 13 `Archetype`s
+  (`button`, `iconButton`, `card`, `badge`, `input`, `select`, `checkbox`,
+  `radio`, `switch`, `skeleton`, `avatar`, `divider`, `spinner`), each declaring
+  its token-bearing `slots` (from `TokenSlot`), DOM `element`, element attrs, and
+  whether it can take text children. `classifyComponent` maps a detected
+  component onto an archetype by root tag with name-hint refinement (icon→iconButton,
+  pill span→badge, switch/toggle→switch, card/panel→card, skeleton/spinner/avatar
+  hints, hr→divider, img→avatar).
+- `packages/cli/src/core/components/compiler.ts` (`compileComponents`) runs the
+  primitives compiler first, then groups detected components per archetype,
+  merges near-duplicates (`signature` equality or ≥50% shared name words) into a
+  canonical rich one, and `buildUnit`-maps their style values onto slot defaults
+  via the same `toCanonical` maps as the codemod. Slot values that resolve to a
+  token become constrained props (typed unions imported from `./primitives`);
+  values that don't stay literal in the component's `LOOK` and are reported as
+  `unmapped`. `tokens.ts`/`primitives.tsx` are reused from the primitives step;
+  the generated `components.tsx` imports `colors`/`typography` records from the
+  same `tokensImport` source the primitives use.
+- Config `components: 'auto' | <archetypeId[]>` — `'auto'` (default) emits the
+  archetypes the codebase uses; an explicit list force-includes the listed
+  archetypes even when undetected (reported as `forced`).
+- `packages/cli/src/commands/components.ts` wires it (same `runPipeline` +
+  `--min-confidence` filter, `--output` default `components/`). Telemetry:
+  `components.detected_count`, `components.emitted_count`, `components.merged_count`,
+  `components.unmatched_count`, `components.proposals_count`, `components.output_path`.
+- Known limitation: radius and shadow tokens are not in the analyze pipeline, so
+  `borderRadius`/`boxShadow` never map to a token and always stay literal `LOOK`
+  (reported as `unmapped` when they collide with a mapped slot). Typography
+  size/weight conflation is documented in `TODO.md`.
