@@ -35,6 +35,14 @@ Primitive API — the mechanism that makes drifting UI hard to write, not just h
 to miss.
 _Avoid_: generator, codegen, scaffold
 
+**Component**:
+A generated React component in the `components` output (e.g. `Button`, `Card`)
+whose style-slot props are typed to token names, compiled from a detected real
+component rather than styled from scratch. Reuses the Primitive layer's types
+and resolver. Component-agnostic: no catalog — every detected component is
+re-emitted as itself.
+_Avoid_: widget, module
+
 **User**:
 A front-end developer running remediation on their React project.
 _Avoid_: consumer, client

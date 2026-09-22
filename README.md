@@ -133,6 +133,45 @@ the design system where a lint rule or review is too easy to leave to chance.
 When `tokensImport` is set in your config, the primitives import from that
 module instead of writing a local `tokens.ts`.
 
+### Components — Compile a token-constrained component library
+
+```bash
+remediation components [path]
+```
+
+Takes the tokens `analyze` detects plus the components found in your codebase
+and compiles them into a typed component library whose props only accept token
+names. Component-agnostic by design: every component it finds is re-emitted as
+its own constrained component (no catalog), near-duplicates
+are merged into one canonical component, detected style values become the
+component's own props and defaults, and values that can't be mapped to a token are
+kept as literal `LOOK` styles and reported.
+
+```tsx
+import { Button, Card } from './components';
+
+<Button backgroundColor="primary" color="white" padding={["sm", "md_16"]}>
+  Save
+</Button>
+
+// Type error — "17px" is not a Spacing token name:
+<Button padding="17px" />
+```
+
+Generated output (in addition to `tokens.ts` / `primitives.tsx`):
+- `components.tsx` — one export per component. Props are the component's own
+  detected style slots typed as their token unions; anything off-system is a
+  TypeScript error.
+
+Point your AI coding agent at the generated file: it can only compose
+components with on-system values, so the design system is enforced where lint
+and review are too easy to skip.
+
+| Flag | Description |
+|------|-------------|
+| `--output <dir>` | Output directory (default `components/`) |
+| `--min-confidence <level>` | Filter proposals by confidence (`high`, `medium`, `low`) |
+
 ## Rules
 
 ### Token Rules
@@ -386,7 +425,7 @@ With `error`-severity rules configured, the command exits with code `1` on viola
 
 ## Telemetry
 
-`scan`, `tokens`, `analyze`, `design`, and `primitives` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
+`scan`, `tokens`, `analyze`, `design`, `primitives`, and `components` send anonymous usage data (command name, duration, violation counts, CLI/Node/OS version) via OpenTelemetry — never file paths, code, or identifiers. By default this is exported to the maintainer's Axiom project. If you've forked this CLI or run a private build, point it at your own backend with `OTEL_EXPORTER_OTLP_ENDPOINT` (or `REMEDIATION_OTEL_ENDPOINT`) and `OTEL_EXPORTER_OTLP_HEADERS` — these always override the built-in default. See [docs/knowledge/telemetry.md](docs/knowledge/telemetry.md).
 
 Disable telemetry with:
 

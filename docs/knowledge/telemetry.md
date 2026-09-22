@@ -1,9 +1,9 @@
 # Telemetry
 
 `packages/cli/src/telemetry/` instruments `scan`, `tokens`, `analyze`,
-`design`, and `primitives` with OpenTelemetry traces. `init` is not
-instrumented — it's a local interactive scaffolding command with nothing worth
-measuring.
+`design`, `primitives`, and `components` with OpenTelemetry traces. `init` is
+not instrumented — it's a local interactive scaffolding command with nothing
+worth measuring.
 
 ## What's collected
 
@@ -15,6 +15,8 @@ never file paths, source code, cluster values, or config contents:
 - `analyze`: `analyze.design_values_count`, `analyze.proposals_count`, `analyze.codemod`
 - `design`: `design.proposals_count`, `design.output_path`
 - `primitives`: `primitives.proposals_count`, `primitives.tokens_import`, `primitives.output_path`
+- `components`: `components.detected_count`, `components.emitted_count`,
+  `components.merged_count`, `components.unmapped_count`, `components.proposals_count`, `components.output_path`
 
 ## Consent (opt-out)
 

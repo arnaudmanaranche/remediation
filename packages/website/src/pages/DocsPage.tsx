@@ -25,6 +25,7 @@ const SECTIONS = [
       { id: 'cmd-analyze',  label: 'analyze' },
       { id: 'cmd-design',   label: 'design' },
       { id: 'cmd-primitives', label: 'primitives' },
+      { id: 'cmd-components', label: 'components' },
       { id: 'cmd-init',     label: 'init' },
     ],
   },
@@ -340,6 +341,29 @@ function CommandsPage() {
           The point is constraint: the compiler — not a lint rule or a code review — is what keeps
           AI-generated UI on-system. Point your coding agent at the generated file so it composes
           against the API instead of inventing values.
+        </p>
+      </section>
+
+      <section>
+        <Heading id="cmd-components">components</Heading>
+        <p>
+          The component-library step. Takes the tokens remediation detects plus the components
+          found in your codebase and compiles them into a <code>components.tsx</code> whose props
+          only accept token names. Component-agnostic: every component found is re-emitted as its
+          own constrained component (no catalog), near-duplicates are merged into one
+          canonical component, and each component's detected style values become its own props and
+          defaults. Values that can't be mapped to a token stay as literal <code>LOOK</code>{' '}
+          styles and are reported.
+        </p>
+        <Code colorize code={`// ✅ compiles — props are token names\n<Button backgroundColor="primary" padding={["sm", "md_16"]}>Save</Button>\n\n// ❌ type error — '17px' is not a Spacing\n<Button padding="17px" />`} />
+        <Code code="remediation components [path] [flags]" />
+        <FlagTable flags={[
+          ['--output <dir>',          'Output directory (default components/)'],
+          ['--min-confidence <level>','Filter proposals: high | medium | low'],
+        ]} />
+        <p>
+          Reuses the primitives output (<code>tokens.ts</code>/<code>primitives.tsx</code>) and
+          the same token unions, so components and primitives compose.
         </p>
       </section>
 
