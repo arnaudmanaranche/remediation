@@ -99,6 +99,28 @@ export function Checkbox() {
 `;
     const components = detectComponentsInSource(src, 'Checkbox.tsx');
     expect(components[0].rootAttrs).toMatchObject({ type: 'checkbox' });
+    expect(components[0].voidElement).toBe(true);
+    expect(components[0].childrenSource).toBeNull();
+  });
+
+  it('preserves static JSX children and marks dynamic ones opaque', () => {
+    const icon = `
+export const CloseIcon = () => (
+  <svg viewBox="0 0 24 24" style={{ width: '16px', height: '16px' }}>
+    <path d="M18.3 5.7L5.7 18.3" stroke="currentColor" />
+  </svg>
+);
+`;
+    const iconComponents = detectComponentsInSource(icon, 'CloseIcon.tsx');
+    expect(iconComponents[0].childrenSource).toContain('<path d="M18.3 5.7L5.7 18.3"');
+
+    const dynamic = `
+export function List({ items }: { items: string[] }) {
+  return <ul style={{ gap: '8px' }}>{items.map(i => <li key={i}>{i}</li>)}</ul>;
+}
+`;
+    const listComponents = detectComponentsInSource(dynamic, 'List.tsx');
+    expect(listComponents[0].childrenSource).toBeNull();
   });
 
   it('detects svg icon components as icon candidates', () => {

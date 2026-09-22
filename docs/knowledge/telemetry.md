@@ -16,7 +16,7 @@ never file paths, source code, cluster values, or config contents:
 - `design`: `design.proposals_count`, `design.output_path`
 - `primitives`: `primitives.proposals_count`, `primitives.tokens_import`, `primitives.output_path`
 - `components`: `components.detected_count`, `components.emitted_count`,
-  `components.merged_count`, `components.unmatched_count`, `components.proposals_count`, `components.output_path`
+  `components.merged_count`, `components.unmapped_count`, `components.proposals_count`, `components.output_path`
 
 ## Consent (opt-out)
 

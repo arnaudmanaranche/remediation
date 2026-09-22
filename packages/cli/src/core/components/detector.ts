@@ -18,6 +18,8 @@ export interface DetectedComponent {
   elements: string[];
   hasSvg: boolean;
   hasChildrenJsx: boolean;
+  voidElement: boolean;
+  childrenSource: string | null;
   styleValues: DetectedStyleValue[];
 }
 
@@ -90,6 +92,11 @@ export function detectComponentsInSource(content: string, file: string): Detecte
     const styleValues = collectStyleValues(candidate.body, structure.rootElement);
     if (styleValues.length === 0) return;
 
+    const childrenSource =
+      structure.childrenStatic && structure.childrenRange
+        ? content.slice(structure.childrenRange.start, structure.childrenRange.end)
+        : null;
+
     found.push({
       name: candidate.name,
       file,
@@ -98,6 +105,8 @@ export function detectComponentsInSource(content: string, file: string): Detecte
       elements: structure.elements,
       hasSvg: structure.hasSvg,
       hasChildrenJsx: structure.hasChildrenJsx,
+      voidElement: structure.voidElement,
+      childrenSource,
       styleValues,
     });
   });
@@ -154,6 +163,9 @@ interface JsxStructure {
   elements: string[];
   hasSvg: boolean;
   hasChildrenJsx: boolean;
+  voidElement: boolean;
+  childrenRange: { start: number; end: number } | null;
+  childrenStatic: boolean;
 }
 
 function inspectJsx(body: AstNode): JsxStructure {
@@ -165,6 +177,9 @@ function inspectJsx(body: AstNode): JsxStructure {
     elements: [],
     hasSvg: false,
     hasChildrenJsx: false,
+    voidElement: false,
+    childrenRange: null,
+    childrenStatic: false,
   };
 
   walk(body, (node) => {
@@ -181,10 +196,29 @@ function inspectJsx(body: AstNode): JsxStructure {
       structure.rootElement = node;
       const children = node.children as AstNode[];
       structure.hasChildrenJsx = (children || []).some(c => c.type === 'JSXElement' || c.type === 'JSXFragment');
+      structure.voidElement = !!(opening.selfClosing || !node.closingElement);
+      if (!structure.voidElement) {
+        const closing = node.closingElement as AstNode;
+        if (typeof opening.end === 'number' && typeof (closing as any).start === 'number') {
+          structure.childrenRange = { start: opening.end, end: (closing as any).start as number };
+        }
+        structure.childrenStatic = isStaticChildren(node.children as AstNode[]);
+      }
     }
   });
 
   return structure;
+}
+
+function isStaticChildren(children: AstNode[]): boolean {
+  for (const child of children || []) {
+    let dynamic = false;
+    walk(child, (n) => {
+      if (n.type === 'JSXExpressionContainer') dynamic = true;
+    });
+    if (dynamic) return false;
+  }
+  return true;
 }
 
 function jsxElementTag(opening: AstNode): string {

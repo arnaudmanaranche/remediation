@@ -51,7 +51,6 @@ const SECTIONS = [
       { id: 'config-severity', label: 'Rule severity' },
       { id: 'config-tokens',   label: 'Token mappings' },
       { id: 'config-tokens-import', label: 'Token import' },
-      { id: 'config-components', label: 'Components selection' },
     ],
   },
   {
@@ -350,12 +349,9 @@ function CommandsPage() {
         <p>
           The component-library step. Takes the tokens remediation detects plus the components
           found in your codebase and compiles them into a <code>components.tsx</code> whose props
-          only accept token names. Each real component is classified against a catalog of 13
-          archetypes (<code>button</code>, <code>iconButton</code>, <code>card</code>,{' '}
-          <code>badge</code>, <code>input</code>, <code>select</code>, <code>checkbox</code>,{' '}
-          <code>radio</code>, <code>switch</code>, <code>skeleton</code>, <code>avatar</code>,{' '}
-          <code>divider</code>, <code>spinner</code>); near-duplicates are merged into one
-          canonical component, and detected style values become the component's props and
+          only accept token names. Component-agnostic: every component found is re-emitted as its
+          own constrained component (no catalog), near-duplicates are merged into one
+          canonical component, and each component's detected style values become its own props and
           defaults. Values that can't be mapped to a token stay as literal <code>LOOK</code>{' '}
           styles and are reported.
         </p>
@@ -367,10 +363,7 @@ function CommandsPage() {
         ]} />
         <p>
           Reuses the primitives output (<code>tokens.ts</code>/<code>primitives.tsx</code>) and
-          the same token unions, so components and primitives compose. When{' '}
-          <code>components</code> is set in your config to a list of archetype ids, only those are
-          emitted (force-included even when undetected); the default <code>'auto'</code> emits the
-          archetypes your codebase actually uses.
+          the same token unions, so components and primitives compose.
         </p>
       </section>
 
@@ -521,17 +514,6 @@ function ConfigurationPage() {
         </p>
         <Code lang="js" code={`module.exports = {\n  tokensImport: '@/design/tokens',\n  tokens: {\n    '#1976D2': 'colors.primary',\n  },\n}`} />
         <Code code={`// injected at the top of each edited file\nimport { colors, spacing } from '@/design/tokens';`} />
-      </section>
-
-      <section>
-        <Heading id="config-components">Components selection</Heading>
-        <p>
-          Set <code>components</code> to control which archetypes the{' '}
-          <code>components</code> command emits. <code>'auto'</code> (default) emits the
-          archetypes your codebase actually uses; an explicit list force-includes those
-          archetypes even when none are detected:
-        </p>
-        <Code lang="js" code={`module.exports = {\n  // 'auto' uses detection; a list forces the catalog:\n  components: ['button', 'card', 'avatar'],\n}`} />
       </section>
     </>
   )

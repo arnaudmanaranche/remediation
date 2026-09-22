@@ -31,8 +31,8 @@ to a token: it stays in the component's literal `LOOK` (reported as `unmapped`
 when it collides with a mapped slot like `padding`). The `radius`/`shadows`
 scan rules flag the violations, but the compile step has nothing to map them
 to. Fix direction: extend the pipeline with radius/shadow clusters and slot
-kinds, then wire `borderRadius`/`boxShadow` slots into the archetype catalog
-(`packages/cli/src/core/components/archetypes.ts`).
+kinds, then teach the `components` compiler to map `borderRadius`/`boxShadow`
+(`packages/cli/src/core/components/compiler.ts`).
 
 ### Typography tokens conflate size/weight with other type props
 

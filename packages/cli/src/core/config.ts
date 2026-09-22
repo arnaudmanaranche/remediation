@@ -9,9 +9,6 @@ export interface RemediationConfig {
   // When set, `analyze --codemod` injects the needed import into edited files;
   // when omitted, it applies the changes and lists the imports to add by hand.
   tokensImport?: string;
-  // Which archetypes the `components` command emits: 'auto' (detection-selected,
-  // default) or an explicit list of archetype ids to force into the library.
-  components?: string[] | 'auto';
 }
 
 const CONFIG_FILE = 'remediation.config.js';
@@ -81,12 +78,6 @@ function validateConfig(config: any): RemediationConfig {
 
   if (typeof config.tokensImport === 'string' && config.tokensImport.length > 0) {
     validated.tokensImport = config.tokensImport;
-  }
-
-  if (config.components === 'auto') {
-    validated.components = 'auto';
-  } else if (Array.isArray(config.components) && config.components.length > 0) {
-    validated.components = config.components.filter((c: any) => typeof c === 'string');
   }
 
   return validated;

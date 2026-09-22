@@ -141,11 +141,10 @@ remediation components [path]
 
 Takes the tokens `analyze` detects plus the components found in your codebase
 and compiles them into a typed component library whose props only accept token
-names. Each real component is classified against a catalog of 13 archetypes
-(`button`, `iconButton`, `card`, `badge`, `input`, `select`, `checkbox`,
-`radio`, `switch`, `skeleton`, `avatar`, `divider`, `spinner`); near-duplicates
+names. Component-agnostic by design: every component it finds is re-emitted as
+its own constrained component (no catalog), near-duplicates
 are merged into one canonical component, detected style values become the
-component's props and defaults, and values that can't be mapped to a token are
+component's own props and defaults, and values that can't be mapped to a token are
 kept as literal `LOOK` styles and reported.
 
 ```tsx
@@ -160,16 +159,13 @@ import { Button, Card } from './components';
 ```
 
 Generated output (in addition to `tokens.ts` / `primitives.tsx`):
-- `components.tsx` — one export per component. Props are the archetype's style
-  slots typed as their token unions; anything off-system is a TypeScript error.
+- `components.tsx` — one export per component. Props are the component's own
+  detected style slots typed as their token unions; anything off-system is a
+  TypeScript error.
 
 Point your AI coding agent at the generated file: it can only compose
 components with on-system values, so the design system is enforced where lint
 and review are too easy to skip.
-
-When `components` is set in your config to a list of archetype ids, only those
-are emitted (force-included even when undetected); the default `'auto'` emits
-the archetypes your codebase actually uses.
 
 | Flag | Description |
 |------|-------------|
@@ -358,10 +354,6 @@ module.exports = {
   // into every file it edits. When omitted, the codemod still applies the
   // replacements but lists the imports you need to add by hand.
   tokensImport: '@/design/tokens',
-
-  // Which archetypes `components` emits: 'auto' (detection-selected, default)
-  // or an explicit list of archetype ids ('button', 'card', …) to force.
-  components: 'auto',
 };
 ```
 
