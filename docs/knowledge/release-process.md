@@ -5,7 +5,10 @@ published to a registry.
 
 - **release-please** manages versioning + CHANGELOG from Conventional Commits:
   `.github/workflows/release-please.yml`, `release-please-config.json`,
-  `.release-please-manifest.json` (holds the current version).
+  `.release-please-manifest.json` (holds the current version). The config sets
+  `pre-major: true`, so the first breaking commit (`feat!:` / BREAKING CHANGE)
+  after a 0.x release bumps straight to **1.0.0** instead of 0.19.0. Preserve
+  this flag — removing it silently reverts to 0.x bumps forever.
 - **`.github/workflows/publish.yml`** publishes to npm on release.
 - Changelog sections: `feat` → Features, `fix` → Bug Fixes, `perf` → Performance.
   `refactor` and `chore` are hidden.

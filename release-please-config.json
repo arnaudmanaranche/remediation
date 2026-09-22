@@ -4,6 +4,7 @@
     "packages/cli": {
       "release-type": "node",
       "package-name": "remediation",
+      "pre-major": true,
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bug Fixes" },
