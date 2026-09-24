@@ -5,6 +5,7 @@ tone: "precise, opinionated, unobtrusive"
 audience: "frontend developers and tech leads evaluating whether to adopt the tool"
 colors:
   primary: "#0A0A0A"
+hook: "Your design system is drifting and CI is the only witness — this scans for it and rewrites the drift away"
 ---
 
 # Product
